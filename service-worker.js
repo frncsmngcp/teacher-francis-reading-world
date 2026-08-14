@@ -1,4 +1,4 @@
-const CACHE_VERSION = "teacher-francis-reading-world-pwa-v1.4.3";
+const CACHE_VERSION = "teacher-francis-reading-world-pwa-v1.4.4";
 const CORE_CACHE = CACHE_VERSION + "-core";
 const CONTENT_CACHE = CACHE_VERSION + "-content";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./offline.html", "./shared/pwa-compat.js", "./shared/pwa-register.js", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./shared/startup-prompt-approved.png"];
