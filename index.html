@@ -856,7 +856,8 @@
       "fluencyPyramidTeacherFrancisV1",
       "kuwentoTayoProgress",
       "letter_slide_teacher_francis_v2",
-      "teacher-francis-reading-world-home-castle-music"
+      "teacher-francis-reading-world-home-castle-music",
+      "tfReadingWorldHideStartupPrompt"
     ];
     const suite = document.getElementById("suite");
     const homeScreen = document.getElementById("home-screen");
@@ -1022,21 +1023,19 @@
       });
 
       confirm.addEventListener("click", () => {
-        const preserveStartupPrompt = (() => {
-          try { return localStorage.getItem("tfReadingWorldHideStartupPrompt"); } catch { return null; }
-        })();
         try {
           GLOBAL_RESET_KEYS.forEach(key => localStorage.removeItem(key));
-          // Remove any older Reading World keys from prior app versions too.
+          // Remove any older Reading World keys from prior app versions too,
+          // including the startup prompt preference so the welcome card shows again.
           const prefixes = [
             "awad_teacher_francis_", "basaBataBasaGeneralV", "basaTayoFilipino",
-            "fluencyPyramidTeacherFrancis", "kuwentoTayo", "letter_slide_teacher_francis_"
+            "fluencyPyramidTeacherFrancis", "kuwentoTayo", "letter_slide_teacher_francis_",
+            "tfReadingWorld"
           ];
           for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
             if (key && prefixes.some(prefix => key.startsWith(prefix))) localStorage.removeItem(key);
           }
-          if (preserveStartupPrompt !== null) localStorage.setItem("tfReadingWorldHideStartupPrompt", preserveStartupPrompt);
         } catch {}
         try { sessionStorage.clear(); } catch {}
         confirm.disabled = true;
