@@ -374,7 +374,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
         <div class="modal-row"><label for="enVoice">English voice</label><select id="enVoice"></select></div>
         <div id="voiceStatus"></div>
         <div class="modal-row"><span>Tunog • Sounds</span><label class="toggle"><input id="soundToggle" type="checkbox" checked> On</label></div>
-        <div class="modal-row"><span class="setting-title">Musika sa Gubat<span class="setting-note">Serene forest music</span></span><label class="toggle"><input id="musicToggle" type="checkbox" checked aria-label="Forest Music • Musika sa Gubat"> On</label></div><div class="modal-row"><span class="setting-title">Lakas ng Musika<span class="setting-note">Forest music volume</span></span><label class="music-volume-control"><input id="musicVolume" type="range" min="0" max="1" step="0.05" value="0.65" aria-label="Forest music volume"><output id="musicVolumeValue">65%</output></label></div>
+        <div class="modal-row"><span class="setting-title">Musika sa Gubat<span class="setting-note">Serene forest music</span></span><label class="toggle"><input id="musicToggle" type="checkbox" checked aria-label="Forest Music • Musika sa Gubat"> On</label></div><div class="modal-row"><span class="setting-title">Lakas ng Musika<span class="setting-note">Forest music volume</span></span><label class="music-volume-control"><input id="musicVolume" type="range" min="0" max="1" step="0.05" value="0.9" aria-label="Forest music volume"><output id="musicVolumeValue">90%</output></label></div>
         <div class="modal-actions">
           <button id="testVoice">Subukan • Test voice</button>
           <button id="resetProgress" class="danger">I-reset ang progreso</button>
@@ -483,17 +483,17 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
   };
   const POSITIONS=[["0%","0%"],["50%","0%"],["100%","0%"],["0%","100%"],["50%","100%"]];
   const savedProgress=loadProgress();
-  const state={lang:"fil",level:"beginner",story:null,page:0,mode:"read",quiz:0,quizScore:0,answered:false,choiceMap:[0,1,2],auto:false,speaking:false,word:-1,syllable:-1,voices:[],progress:savedProgress,sound:true,music:!!savedProgress.settings?.forestMusic,musicVolume:Math.max(0,Math.min(1,Number(savedProgress.settings?.forestMusicVolume??.65)))};
+  const state={lang:"fil",level:"beginner",story:null,page:0,mode:"read",quiz:0,quizScore:0,answered:false,choiceMap:[0,1,2],auto:false,speaking:false,word:-1,syllable:-1,voices:[],progress:savedProgress,sound:true,music:!!savedProgress.settings?.forestMusic,musicVolume:Math.max(0,Math.min(1,Number(savedProgress.settings?.forestMusicVolume??.9)))};
   let speechRun=0,syllableTimer=0;
   const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
   const els={stage:$("#stage"),home:$("#home"),reader:$("#reader"),shelf:$("#storyShelf"),stars:$("#totalStars"),badges:$("#totalBadges"),homeMessage:$("#homeMessage"),picture:$("#storyPicture"),passage:$("#passageText"),passagePage:$("#passagePage"),quiz:$("#quizPanel"),heading:$("#storyHeading"),progress:$("#pageProgress"),readerLanguage:$("#readerLanguage"),readerStars:$("#readerStars"),speed:$("#speedControl"),toast:$("#toast"),syllableGuide:$("#syllableGuide"),syllableFocus:$("#syllableFocus"),keyboardHint:$("#keyboardHint")};
 
   function loadProgress(){
-    const empty={stars:0,badges:0,completed:{},pages:{},voices:{},settings:{forestMusic:true,forestMusicUserSet:false,forestMusicVolume:.65}};
+    const empty={stars:0,badges:0,completed:{},pages:{},voices:{},settings:{forestMusic:true,forestMusicUserSet:false,forestMusicVolume:.9}};
     try{
       const saved=JSON.parse(localStorage.getItem("kuwentoTayoProgress"));
       const merged=saved?{...empty,...saved,completed:saved.completed||{},pages:saved.pages||{},voices:saved.voices||{},settings:{...empty.settings,...(saved.settings||{})}}:empty;
-      if(merged.settings.forestMusicUserSet!==true)merged.settings.forestMusic=true;merged.settings.forestMusicVolume=Math.max(0,Math.min(1,Number.isFinite(Number(merged.settings.forestMusicVolume))?Number(merged.settings.forestMusicVolume):.65));
+      if(merged.settings.forestMusicUserSet!==true)merged.settings.forestMusic=true;merged.settings.forestMusicVolume=Math.max(0,Math.min(1,Number.isFinite(Number(merged.settings.forestMusicVolume))?Number(merged.settings.forestMusicVolume):.9));
       return merged
     }catch{return empty}
   }
@@ -676,7 +676,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
       const ctx=ensureAudioContext();if(!ctx)return;
       if(ctx.state==="suspended"){try{await ctx.resume()}catch{}}
       if(ctx.state!=="running"||forestMaster)return;
-      forestMaster=ctx.createGain();forestMaster.gain.setValueAtTime(.0001,ctx.currentTime);forestMaster.gain.exponentialRampToValueAtTime(Math.max(.0001,.36*state.musicVolume),ctx.currentTime+1.2);forestMaster.connect(ctx.destination);
+      forestMaster=ctx.createGain();forestMaster.gain.setValueAtTime(.0001,ctx.currentTime);forestMaster.gain.exponentialRampToValueAtTime(Math.max(.0001,.62*state.musicVolume),ctx.currentTime+1.2);forestMaster.connect(ctx.destination);
       const buffer=ctx.createBuffer(1,ctx.sampleRate*4,ctx.sampleRate),data=buffer.getChannelData(0);let last=0;for(let i=0;i<data.length;i++){last=last*.985+(Math.random()*2-1)*.015;data[i]=last}forestWind=ctx.createBufferSource();forestWind.buffer=buffer;forestWind.loop=true;const filter=ctx.createBiquadFilter(),gain=ctx.createGain();filter.type="lowpass";filter.frequency.value=720;gain.gain.value=.026;forestWind.connect(filter).connect(gain).connect(forestMaster);forestWind.start();forestNodes=[forestWind,filter,gain];scheduleForestPhrase();forestTimer=setInterval(scheduleForestPhrase,14500)
     }catch{stopForestMusic()}
   }
@@ -684,7 +684,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
     clearInterval(forestTimer);forestTimer=0;if(forestMaster&&audioCtx){try{forestMaster.gain.cancelScheduledValues(audioCtx.currentTime);forestMaster.gain.setTargetAtTime(.0001,audioCtx.currentTime,.18)}catch{}}
     const master=forestMaster,nodes=forestNodes;forestMaster=null;forestWind=null;forestNodes=[];setTimeout(()=>{nodes.forEach(n=>{try{n.stop?.()}catch{}try{n.disconnect?.()}catch{}});try{master?.disconnect()}catch{}},650)
   }
-  function setForestMusic(enabled){state.music=!!enabled;state.progress.settings={...(state.progress.settings||{}),forestMusic:state.music,forestMusicUserSet:true,forestMusicVolume:state.musicVolume};$("#musicToggle").checked=state.music;saveProgress();state.music?startForestMusic():stopForestMusic()} function setForestMusicVolume(value){state.musicVolume=Math.max(0,Math.min(1,Number(value)||0));state.progress.settings={...(state.progress.settings||{}),forestMusic:state.music,forestMusicUserSet:true,forestMusicVolume:state.musicVolume};$("#musicVolume").value=String(state.musicVolume);$("#musicVolumeValue").textContent=`${Math.round(state.musicVolume*100)}%`;if(forestMaster&&audioCtx){try{forestMaster.gain.setTargetAtTime(Math.max(.0001,.36*state.musicVolume),audioCtx.currentTime,.08)}catch{}}saveProgress()}
+  function setForestMusic(enabled){state.music=!!enabled;state.progress.settings={...(state.progress.settings||{}),forestMusic:state.music,forestMusicUserSet:true,forestMusicVolume:state.musicVolume};$("#musicToggle").checked=state.music;saveProgress();state.music?startForestMusic():stopForestMusic()} function setForestMusicVolume(value){state.musicVolume=Math.max(0,Math.min(1,Number(value)||0));state.progress.settings={...(state.progress.settings||{}),forestMusic:state.music,forestMusicUserSet:true,forestMusicVolume:state.musicVolume};$("#musicVolume").value=String(state.musicVolume);$("#musicVolumeValue").textContent=`${Math.round(state.musicVolume*100)}%`;if(forestMaster&&audioCtx){try{forestMaster.gain.setTargetAtTime(Math.max(.0001,.62*state.musicVolume),audioCtx.currentTime,.08)}catch{}}saveProgress()}
 
   function openSettings(){loadVoices();$("#musicToggle").checked=state.music;$("#musicVolume").value=String(state.musicVolume);$("#musicVolumeValue").textContent=`${Math.round(state.musicVolume*100)}%`;$("#settings").classList.add("show")}
   $("#settingsBtn").onclick=openSettings;$$('[data-close="settings"]').forEach(b=>b.onclick=()=>$("#settings").classList.remove("show"));
@@ -706,6 +706,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
     if(e.key.toLowerCase()==="f")toggleFullscreen()
   });
   const resumeForestMusic=()=>{if(state.music)startForestMusic()};addEventListener("pointerdown",resumeForestMusic,{once:true});addEventListener("keydown",resumeForestMusic,{once:true});
+  window.addEventListener("message",event=>{if(event.data?.type==="teacher-francis-activate-audio"){try{ensureAudioContext();if(state.music)startForestMusic()}catch{}}});
   document.addEventListener("visibilitychange",()=>{if(document.hidden){stopSpeech();stopForestMusic()}else if(state.music)startForestMusic()});
   window.__KUWENTO_QA__={stories:STORIES,state,openStory,backHome,changePage,startQuiz,answerQuiz,renderHome,renderReader,moveWord,moveSyllable,speakFocusedSyllable,setForestMusic,startForestMusic,stopForestMusic};
   renderHome();
