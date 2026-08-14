@@ -1,4 +1,4 @@
-TEACHER FRANCIS READING WORLD — PWA v1.0
+TEACHER FRANCIS READING WORLD — PWA v1.1 iPad Touch Fix
 =============================================
 
 WHAT THIS IS
@@ -20,6 +20,14 @@ HOW TO PUT IT ON AN iPAD / iPHONE
 4. Tap Safari Share → Add to Home Screen. If your iPad/iPhone shows an “Open as Web App” switch, leave it ON, then tap Add.
 5. Launch Reading World from the Home Screen.
 6. For the safest offline check, while still online open each of the six modules once. Then close it, turn off Wi‑Fi, reopen Reading World from the Home Screen, and test the modules.
+
+
+TOUCHSCREEN GESTURES
+- Swipe LEFT on the main learning area = next / forward.
+- Swipe RIGHT = previous / backward.
+- Kuwento Tayo: left/right swipes turn complete story pages.
+- Fluency Pyramid: up/down swipes also use its existing vertical navigation.
+- Buttons, forms, sliders and dialog controls keep normal tap behavior and are excluded from swipe detection.
 
 VOICE
 Voice-over still uses iOS/iPadOS speech synthesis. This PWA primes speech synthesis on touch/click and keeps the existing fallback behavior, but the exact installed Filipino/English voices are supplied by the device.

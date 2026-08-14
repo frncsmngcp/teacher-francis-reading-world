@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — 6-in-1 v4.8 iPad Compatible</title>
+  <title>Teacher Francis Reading World — PWA v1.1 iPad Touch Fix</title>
   <style>
     :root {
       color-scheme: dark;
@@ -738,28 +738,6 @@
       frame.onload = null;
       frame.removeAttribute("srcdoc");
       frame.src = "about:blank";
-      try {
-        const doc = frame.contentDocument || frame.contentWindow?.document;
-        if (doc) { doc.open(); doc.write("<!doctype html><html><body>
-<script>
-(() => {
-  if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-  window.addEventListener('load', async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
-      await navigator.serviceWorker.ready;
-      const target = navigator.serviceWorker.controller || reg.active || reg.waiting;
-      target?.postMessage({ type: 'PRECACHE_READING_WORLD' });
-      try { await navigator.storage?.persist?.(); } catch (_) {}
-    } catch (err) {
-      console.warn('Reading World offline cache was not registered:', err);
-    }
-  });
-})();
-</script>
-
-</body></html>"); doc.close(); }
-      } catch {}
       frame.title = "Teacher Francis reading app";
       setActiveScreen("home");
       status.textContent = "Choose one of six Teacher Francis reading apps.";
@@ -812,6 +790,8 @@
   </script>
 
 
+
+<script src="./shared/pwa-register.js" defer></script>
 
 <!-- TF_HOME_FOREST_MUSIC_SCRIPT_START -->
 <script id="tf-home-forest-music-script">
