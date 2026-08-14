@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.4.1 Prompt Alignment Fix</title>
+  <title>Teacher Francis Reading World — PWA v1.4.2 Phone Touch & Scale Fix</title>
   <style>
     :root {
       color-scheme: dark;
@@ -167,6 +167,141 @@
     .launch-hotspot[data-app="letter-slide"] {
       left: 69.8565%; top: 62.5930%; width: 22.6675%; height: 28.7991%;
       background-image: url("./assets/8b4cff75e1cb9c6efca6.png");
+    }
+
+
+    /* Hidden globe easter egg: deliberately no hover sheen, glow, lift, or pointer hint. */
+    #globe-reset-hotspot {
+      position:absolute;
+      left:93.55%;
+      top:21.9%;
+      width:5.55%;
+      height:11.2%;
+      z-index:3;
+      appearance:none;
+      border:0;
+      padding:0;
+      margin:0;
+      background:transparent;
+      box-shadow:none;
+      outline:none;
+      cursor:default;
+      opacity:0.001;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+    #globe-reset-hotspot:hover,
+    #globe-reset-hotspot:focus,
+    #globe-reset-hotspot:focus-visible,
+    #globe-reset-hotspot:active {
+      transform:none !important;
+      filter:none !important;
+      box-shadow:none !important;
+      outline:none !important;
+      background:transparent !important;
+    }
+
+    #global-reset-dialog {
+      position:fixed;
+      inset:0;
+      z-index:10050;
+      display:none;
+      place-items:center;
+      padding:22px;
+      background:rgba(7,18,30,.58);
+      backdrop-filter:blur(12px) saturate(.95);
+      -webkit-backdrop-filter:blur(12px) saturate(.95);
+    }
+    #global-reset-dialog.open { display:grid; }
+    .global-reset-card {
+      position:relative;
+      width:min(92vw,690px);
+      padding:30px 32px 28px;
+      border-radius:30px;
+      border:2px solid rgba(255,255,255,.6);
+      background:linear-gradient(180deg,rgba(255,253,244,.98),rgba(246,234,211,.98));
+      box-shadow:0 28px 80px rgba(0,0,0,.38), inset 0 0 0 4px rgba(255,214,106,.24);
+      text-align:center;
+      color:#543619;
+      overflow:hidden;
+    }
+    .global-reset-card::before {
+      content:"";
+      position:absolute;
+      inset:-40% -15% auto;
+      height:190px;
+      background:radial-gradient(circle,rgba(255,221,112,.48),rgba(255,221,112,0) 68%);
+      pointer-events:none;
+    }
+    .global-reset-icon {
+      position:relative;
+      width:76px;
+      height:76px;
+      margin:0 auto 10px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:linear-gradient(180deg,#ff7d78,#e74046);
+      border:5px solid #fff4cf;
+      box-shadow:0 8px 0 #9a2427,0 14px 28px rgba(121,28,31,.25);
+      color:white;
+      font:900 38px/1 Arial,sans-serif;
+    }
+    .global-reset-card h2 {
+      position:relative;
+      margin:12px 0 8px;
+      font:900 clamp(28px,4vw,42px)/1.05 Arial,sans-serif;
+      color:#773316;
+    }
+    .global-reset-card p {
+      position:relative;
+      margin:0 auto;
+      max-width:34em;
+      font:700 clamp(15px,2vw,19px)/1.5 Arial,sans-serif;
+      color:#65452c;
+    }
+    .global-reset-apps {
+      position:relative;
+      margin:17px auto 20px;
+      padding:12px 14px;
+      border-radius:17px;
+      background:rgba(116,76,33,.08);
+      border:1px solid rgba(116,76,33,.12);
+      font:800 clamp(13px,1.7vw,16px)/1.45 Arial,sans-serif;
+      color:#6b4629;
+    }
+    .global-reset-actions {
+      position:relative;
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .global-reset-actions button {
+      min-width:180px;
+      border:0;
+      border-radius:18px;
+      padding:14px 20px;
+      font:900 clamp(16px,2vw,20px)/1 Arial,sans-serif;
+      cursor:pointer;
+      transition:transform .15s ease,filter .15s ease;
+    }
+    .global-reset-actions button:hover,
+    .global-reset-actions button:focus-visible { transform:translateY(-2px); filter:brightness(1.04); outline:none; }
+    #global-reset-cancel {
+      color:#3c5570;
+      background:linear-gradient(180deg,#f7fbff,#dbeafa);
+      box-shadow:0 6px 0 #9eb8d3;
+    }
+    #global-reset-confirm {
+      color:white;
+      background:linear-gradient(180deg,#ff6d68,#dc3943);
+      box-shadow:0 6px 0 #91232a;
+    }
+    @media (max-width:700px) {
+      .global-reset-card{padding:24px 20px 22px;border-radius:24px}
+      .global-reset-actions{flex-direction:column}
+      .global-reset-actions button{width:100%;min-width:0}
     }
 
     #player-screen {
@@ -594,6 +729,22 @@
     0% { transform: rotate(var(--rot)) translate3d(-1.2cqw, .8cqh, 0) scale(.96); opacity: calc(var(--opacity) * .82); }
     100% { transform: rotate(var(--rot)) translate3d(1.5cqw, -1.2cqh, 0) scale(1.08); opacity: var(--opacity); }
   }
+
+  @media (max-width:600px) and (orientation:portrait) {
+    #player-fullscreen {
+      width:40px;
+      height:40px;
+      min-width:40px;
+      padding:0;
+      justify-content:center;
+      gap:0;
+      border-width:1.5px;
+      font-size:16px;
+    }
+    #player-fullscreen span:last-child { display:none; }
+    #player-fullscreen .icon { font-size:19px; }
+  }
+
   @media (max-width: 760px) {
     #player-fullscreen {
       top: 1.6%;
@@ -642,6 +793,7 @@
         <button class="launch-hotspot" data-app="basa-bata-basa" aria-label="Open Basa, Bata, Basa!" title="Basa, Bata, Basa! — keyboard 5"></button>
         <button class="launch-hotspot" data-app="letter-slide" aria-label="Open Letter Slide" title="Letter Slide — keyboard 6"></button>
       </nav>
+      <button id="globe-reset-hotspot" type="button" aria-label="Decorative globe"></button>
       <!-- TF_HOME_FOREST_MUSIC_CONTROL_START -->
       <button id="home-music-control" type="button" aria-pressed="true" aria-label="Toggle Reading World background music">
         <span class="home-music-icon" aria-hidden="true">♫</span>
@@ -680,9 +832,32 @@
     </div>
   </div>
 
+  <div id="global-reset-dialog" role="dialog" aria-modal="true" aria-labelledby="global-reset-title" aria-describedby="global-reset-copy">
+    <div class="global-reset-card">
+      <div class="global-reset-icon" aria-hidden="true">↻</div>
+      <h2 id="global-reset-title">Reset Reading World?</h2>
+      <p id="global-reset-copy">This will erase all saved learner progress and restore the default settings in all six reading apps. This action cannot be undone.</p>
+      <div class="global-reset-apps">AWAD • Basa Tayo • Kuwento Tayo • Fluency Pyramid • Basa, Bata, Basa! • Letter Slide</div>
+      <div class="global-reset-actions">
+        <button id="global-reset-cancel" type="button">Cancel</button>
+        <button id="global-reset-confirm" type="button">Reset Everything</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const APP_METADATA = {"awad":{"title":"AWAD — A Word A Day","key":"1"},"basa-tayo":{"title":"Basa Tayo!","key":"2"},"kuwento-tayo":{"title":"Kuwento Tayo!","key":"3"},"fluency-pyramid":{"title":"Fluency Pyramid","key":"4"},"basa-bata-basa":{"title":"Basa, Bata, Basa!","key":"5"},"letter-slide":{"title":"Letter Slide","key":"6"}};
     const APP_URLS = {"awad":"./modules/awad.html","basa-tayo":"./modules/basa-tayo.html","kuwento-tayo":"./modules/kuwento-tayo.html","fluency-pyramid":"./modules/fluency-pyramid.html","basa-bata-basa":"./modules/basa-bata-basa.html","letter-slide":"./modules/letter-slide.html"};
+
+    const GLOBAL_RESET_KEYS = [
+      "awad_teacher_francis_v2", "awad_teacher_francis_v1",
+      "basaBataBasaGeneralV3", "basaBataBasaGeneralV2",
+      "basaTayoFilipinoPixiV11", "basaTayoFilipinoV6", "basaTayoFilipinoV5",
+      "fluencyPyramidTeacherFrancisV1",
+      "kuwentoTayoProgress",
+      "letter_slide_teacher_francis_v2",
+      "teacher-francis-reading-world-home-castle-music"
+    ];
     const suite = document.getElementById("suite");
     const homeScreen = document.getElementById("home-screen");
     const playerScreen = document.getElementById("player-screen");
@@ -808,6 +983,67 @@
       if (APP_METADATA[id]) openApp(id, { updateHistory: false });
       else showHome({ updateHistory: false });
     });
+
+
+    (() => {
+      const globe = document.getElementById("globe-reset-hotspot");
+      const dialog = document.getElementById("global-reset-dialog");
+      const cancel = document.getElementById("global-reset-cancel");
+      const confirm = document.getElementById("global-reset-confirm");
+      if (!globe || !dialog || !cancel || !confirm) return;
+
+      let tapTimes = [];
+      const TAP_WINDOW_MS = 2600;
+
+      const openResetDialog = () => {
+        tapTimes = [];
+        dialog.classList.add("open");
+        requestAnimationFrame(() => cancel.focus({ preventScroll:true }));
+      };
+      const closeResetDialog = () => {
+        dialog.classList.remove("open");
+        try { globe.focus({ preventScroll:true }); } catch {}
+      };
+
+      globe.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const now = Date.now();
+        tapTimes = tapTimes.filter(t => now - t <= TAP_WINDOW_MS);
+        tapTimes.push(now);
+        if (tapTimes.length >= 5) openResetDialog();
+      });
+
+      cancel.addEventListener("click", closeResetDialog);
+      dialog.addEventListener("pointerdown", event => { if (event.target === dialog) closeResetDialog(); });
+      document.addEventListener("keydown", event => {
+        if (!dialog.classList.contains("open")) return;
+        if (event.key === "Escape") { event.preventDefault(); closeResetDialog(); }
+      });
+
+      confirm.addEventListener("click", () => {
+        const preserveStartupPrompt = (() => {
+          try { return localStorage.getItem("tfReadingWorldHideStartupPrompt"); } catch { return null; }
+        })();
+        try {
+          GLOBAL_RESET_KEYS.forEach(key => localStorage.removeItem(key));
+          // Remove any older Reading World keys from prior app versions too.
+          const prefixes = [
+            "awad_teacher_francis_", "basaBataBasaGeneralV", "basaTayoFilipino",
+            "fluencyPyramidTeacherFrancis", "kuwentoTayo", "letter_slide_teacher_francis_"
+          ];
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && prefixes.some(prefix => key.startsWith(prefix))) localStorage.removeItem(key);
+          }
+          if (preserveStartupPrompt !== null) localStorage.setItem("tfReadingWorldHideStartupPrompt", preserveStartupPrompt);
+        } catch {}
+        try { sessionStorage.clear(); } catch {}
+        confirm.disabled = true;
+        confirm.textContent = "Resetting…";
+        setTimeout(() => location.replace(location.pathname + location.search + "?reset=" + Date.now()), 220);
+      });
+    })();
 
     const requestedApp = location.hash.slice(1);
     history.replaceState({ home: true }, "", location.pathname + location.search);

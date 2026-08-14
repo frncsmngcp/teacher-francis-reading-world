@@ -235,6 +235,32 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 .reading-text.type-sentence{line-height:1.20!important;padding-bottom:.18em!important}
 .lesson-picture.picture-card .picture-card-text{line-height:1.14!important;padding-bottom:.12em!important}
 .syllable-piece,.sentence-word,.whole-word,.sentence-whole{line-height:1.16!important;padding-bottom:.10em!important}
+
+
+/* v1.4.2 portrait-phone dialog/reward scaling */
+@media (max-width:600px) and (orientation:portrait){
+  .app-dialog{padding:1.5%!important}
+  .dialog-card{width:72%!important;max-width:none!important;max-height:90%!important;padding:10px 12px!important;border-width:6px!important;border-radius:20px!important;overflow:auto!important}
+  .dialog-card h2{font-size:20px!important;margin:0 0 7px!important}
+  .dialog-close{width:30px!important;height:30px!important;right:6px!important;top:5px!important;border-width:2px!important;font-size:19px!important}
+  .dialog-actions{gap:5px!important}
+  .dialog-actions button,.settings-card button{font-size:12px!important;padding:6px 9px!important;border-width:2px!important}
+  .settings-card{font-size:12px!important}
+  .modal-letter-grid{gap:4px!important}
+  .modal-letter-grid button{font-size:12px!important}
+
+  .badge-celebration{background:radial-gradient(circle,#0c7f8370,#062f36d8)}
+  .celebration-card{width:58%!important;max-height:88%!important;padding:7px 10px 10px!important;border-width:6px!important;border-radius:22px!important;box-shadow:0 8px 0 #844213,0 12px 24px #0008!important;overflow:hidden!important}
+  .festival-medal{width:66px!important;height:66px!important;margin:3px auto!important;border-width:6px!important;box-shadow:0 0 0 5px #713794,0 0 18px 7px #ffd52f!important}
+  .festival-medal span{font-size:34px!important;text-shadow:0 3px #c66e05!important}
+  .celebration-card>p{font-size:14px!important;line-height:1.05!important}
+  .celebration-card h2{font-size:20px!important;line-height:1.05!important;margin:3px!important}
+  .celebration-card strong{font-size:12px!important;line-height:1.1!important}
+  .celebration-card small{font-size:9px!important;line-height:1.15!important;margin:4px!important}
+  .celebration-card button{border-width:2px!important;border-radius:12px!important;padding:5px 10px!important;font-size:11px!important;box-shadow:0 3px 0 #33720f!important}
+  .celebration-rays{width:330px!important;height:330px!important}
+}
+
 </style>
 
   <script src="../shared/pwa-compat.js"></script>

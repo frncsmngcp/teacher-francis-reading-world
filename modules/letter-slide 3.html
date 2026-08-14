@@ -520,7 +520,7 @@ const TRAY={x1:348,y:847,x2:1260};
 
 const $=id=>document.getElementById(id);
 const state={
-  music:true,volume:70,speech:true,custom:[],lastMode:'easy',
+  music:true,volume:70,speech:false,speechUserSet:false,custom:[],lastMode:'easy',
   levelWords:{easy:null,medium:null,hard:null},
   progress:{
     easy:{word:0,unit:0,complete:false},
@@ -644,6 +644,7 @@ function normalizeProgress(){
 function loadState(){
   try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null'); if(saved) Object.assign(state,saved);}catch(e){}
   if(!Array.isArray(state.custom)) state.custom=[];
+  if(state.speechUserSet!==true) state.speech=false;
   normalizeLevelWords();
   state.volume=Math.max(0,Math.min(100,Number(state.volume)||70));
   normalizeProgress();
@@ -1707,7 +1708,7 @@ function installButtonFeedback(){
 $('homeEasy').onclick=()=>startMode('easy'); $('homeMedium').onclick=()=>startMode('medium'); $('homeHard').onclick=()=>startMode('hard'); $('homeCustom').onclick=()=>startMode('custom'); $('homeEditCustom').onclick=openCustom; $('homeSettings').onclick=openSettings; $('homeFull').onclick=toggleFull; $('homeHome').onclick=()=>showScreen('homeScreen');
 $('playEasy').onclick=()=>startMode('easy'); $('playMedium').onclick=()=>startMode('medium'); $('playHard').onclick=()=>startMode('hard'); $('playSettings').onclick=openSettings; $('playHome').onclick=()=>{ resetCamera(false); showScreen('homeScreen'); try{speechSynthesis.cancel();}catch(e){} }; $('playFull').onclick=toggleFull;
 $('stepBtn').onclick=doStep; $('repeatBtn').onclick=sayAgain; $('nextBtn').onclick=nextWord;
-$('wordManagerBtn').onclick=()=>openWordManager(state.lastMode||currentMode); $('resetProgressBtn').onclick=resetAllProgress; $('doneSettings').onclick=closeSettings; $('musicToggle').onclick=()=>{ state.music=!state.music; saveState(); syncSettings(); unlockAudio(); }; $('speechToggle').onclick=()=>{ state.speech=!state.speech; saveState(); syncSettings(); }; $('volumeSlider').oninput=e=>{ state.volume=Number(e.target.value); saveState(); syncSettings(); };
+$('wordManagerBtn').onclick=()=>openWordManager(state.lastMode||currentMode); $('resetProgressBtn').onclick=resetAllProgress; $('doneSettings').onclick=closeSettings; $('musicToggle').onclick=()=>{ state.music=!state.music; saveState(); syncSettings(); unlockAudio(); }; $('speechToggle').onclick=()=>{ state.speech=!state.speech; state.speechUserSet=true; saveState(); syncSettings(); }; $('volumeSlider').oninput=e=>{ state.volume=Number(e.target.value); saveState(); syncSettings(); };
 $('saveCustom').onclick=saveCustom; $('closeCustom').onclick=closeCustom;
 $('saveLevelWords').onclick=saveManagedWordList;
 $('restoreLevelDefaults').onclick=restoreManagedDefaults;
