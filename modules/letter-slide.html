@@ -1786,7 +1786,50 @@ document.addEventListener('visibilitychange', ()=>{
 window.addEventListener('pointerdown', unlockAudio, {once:true});
 window.addEventListener('touchstart', unlockAudio, {once:true});
 
-document.addEventListener('DOMContentLoaded', ()=>{ positionStaticElements(); installButtonFeedback(); loadState(); refreshStageLayout(); updateInfo(); });
+
+
+window.addEventListener('message', event=>{
+  if(event.data?.type==='teacher-francis-activate-audio'){
+    try{ unlockAudio(); syncSettings(); }catch(e){}
+  }
+});
+
+function installTouchSlideControls(){
+  const screen=$('playScreen');
+  if(!screen) return;
+  let gesture=null;
+  const overlaysOpen=()=> $('settingsOverlay').classList.contains('open') || $('customOverlay').classList.contains('open') || $('wordManagerOverlay').classList.contains('open');
+  const isInteractive=target=> !!target?.closest('button,input,textarea,select,label,[role="button"],a,.tf-dialog-layer,.tf-dialog-card,.overlay,.modal,.toggle,#teacher-francis-suite-home');
+  screen.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse') return;
+    if(!$('playScreen').classList.contains('active') || overlaysOpen()) return;
+    if(isInteractive(e.target)) return;
+    gesture={x:e.clientX,y:e.clientY,t:Date.now()};
+  },{passive:true});
+  screen.addEventListener('pointerup',e=>{
+    if(e.pointerType==='mouse') return;
+    if(!gesture) return;
+    const dx=e.clientX-gesture.x, dy=e.clientY-gesture.y;
+    const adx=Math.abs(dx), ady=Math.abs(dy);
+    const dt=Date.now()-gesture.t;
+    gesture=null;
+    if(overlaysOpen() || isInteractive(e.target)) return;
+    if(adx>44 && adx>ady*1.15){
+      if(dx>0) stepForward();
+      else stepBackward();
+      return;
+    }
+    if(adx<18 && ady<18 && dt<360){
+      const rect=screen.getBoundingClientRect();
+      const relativeX=e.clientX-rect.left;
+      if(relativeX<rect.width/2) stepBackward();
+      else stepForward();
+    }
+  },{passive:true});
+  screen.addEventListener('pointercancel',()=>{ gesture=null; },{passive:true});
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{ positionStaticElements(); installButtonFeedback(); installTouchSlideControls(); loadState(); refreshStageLayout(); updateInfo(); });
 </script>
 
 <style id="teacher-francis-suite-bridge-style">

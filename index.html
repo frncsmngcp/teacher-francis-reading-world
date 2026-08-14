@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.1 iPad Touch Fix</title>
+  <title>Teacher Francis Reading World — PWA v1.2 Touch + Audio Update</title>
   <style>
     :root {
       color-scheme: dark;
@@ -612,6 +612,31 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Reading World">
   <meta name="mobile-web-app-capable" content="yes">
+
+<style id="tf-startup-overlay-style">
+  #startup-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:clamp(18px,3vw,32px);background:radial-gradient(circle at top,#153f62 0%,#0b2437 46%,rgba(5,15,24,.98) 100%);overflow:hidden}
+  #startup-overlay[hidden]{display:none !important}
+  #startup-overlay::before,#startup-overlay::after{content:"";position:absolute;border-radius:50%;filter:blur(18px);opacity:.45;pointer-events:none;animation:tfFloatGlow 8s ease-in-out infinite}
+  #startup-overlay::before{width:26vmax;height:26vmax;left:-6vmax;top:-5vmax;background:radial-gradient(circle,#6bd0ff 0%,rgba(107,208,255,0) 70%)}
+  #startup-overlay::after{width:22vmax;height:22vmax;right:-5vmax;bottom:-4vmax;background:radial-gradient(circle,#ffdc7b 0%,rgba(255,220,123,0) 70%);animation-delay:-3s}
+  .startup-card{position:relative;max-width:min(92vw,820px);width:min(92vw,820px);padding:clamp(24px,3.3vw,34px);border-radius:28px;border:2px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(24,50,78,.96),rgba(11,29,44,.97));box-shadow:0 26px 70px rgba(0,0,0,.38),inset 0 0 0 1px rgba(255,255,255,.06);color:#fff;text-align:left;overflow:hidden}
+  .startup-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 16%,rgba(255,255,255,.18),rgba(255,255,255,0) 34%),radial-gradient(circle at 85% 18%,rgba(255,210,92,.18),rgba(255,210,92,0) 22%),linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,0));pointer-events:none}
+  .startup-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);font:900 clamp(12px,1.5vw,16px)/1.1 Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#ffe694;box-shadow:0 8px 18px rgba(0,0,0,.16)}
+  .startup-title{margin:16px 0 10px;font:900 clamp(32px,5vw,54px)/1.02 Arial,sans-serif;letter-spacing:-.02em;text-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .startup-copy{margin:0 0 12px;font:600 clamp(16px,2vw,22px)/1.5 Arial,sans-serif;color:#e8f6ff;max-width:38em}
+  .startup-points{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0 22px;padding:0;list-style:none}
+  .startup-points li{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);font:700 clamp(13px,1.55vw,17px)/1.45 Arial,sans-serif;color:#fff}
+  .startup-points li span{font-size:1.25em;line-height:1}
+  .startup-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+  #startup-continue{appearance:none;border:0;border-radius:18px;padding:16px 24px;min-width:250px;font:900 clamp(18px,2vw,24px)/1 Arial,sans-serif;color:#10345a;background:linear-gradient(180deg,#ffe88f,#ffc94e);box-shadow:0 8px 0 rgba(132,86,4,.75),0 16px 28px rgba(0,0,0,.28);cursor:pointer;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+  #startup-continue:hover,#startup-continue:focus-visible{transform:translateY(-2px) scale(1.01);filter:brightness(1.04);outline:none}
+  #startup-continue:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(132,86,4,.75),0 10px 20px rgba(0,0,0,.24)}
+  .startup-footnote{font:700 clamp(12px,1.35vw,15px)/1.5 Arial,sans-serif;color:#c4e4f9;opacity:.95}
+  .startup-sparkle{position:absolute;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 16px rgba(255,255,255,.78);animation:tfSparkle 3.4s linear infinite;pointer-events:none}
+  @keyframes tfFloatGlow{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(0,14px,0) scale(1.06)}}
+  @keyframes tfSparkle{0%{transform:translateY(12px) scale(.4);opacity:0}20%{opacity:.95}70%{opacity:.82}100%{transform:translateY(-26px) scale(1.12);opacity:0}}
+  @media (max-width: 700px){.startup-card{border-radius:24px}.startup-title{font-size:clamp(28px,8vw,42px)}#startup-continue{min-width:100%}}
+</style>
 </head>
 <body>
   <main id="suite" aria-label="Teacher Francis Reading World">
@@ -655,6 +680,29 @@
     </section>
     <div id="suite-status" class="sr-only" aria-live="polite"></div>
   </main>
+
+  <div id="startup-overlay" role="dialog" aria-modal="true" aria-labelledby="startup-title" aria-describedby="startup-copy">
+    <div class="startup-card">
+      <div class="startup-badge">✨ Best viewed in landscape</div>
+      <h1 id="startup-title" class="startup-title">Welcome to Teacher Francis Reading World</h1>
+      <p id="startup-copy" class="startup-copy">For the best experience, use <strong>landscape mode</strong> on a bigger device or desktop. Sounds and read-aloud may work differently on some devices, especially in Filipino. Enjoy and have fun reading!</p>
+      <ul class="startup-points">
+        <li><span>🖥️</span><div>Works best on landscape tablets, laptops, and desktop screens.</div></li>
+        <li><span>🔊</span><div>Tap once to wake sounds and background music more reliably.</div></li>
+        <li><span>👆</span><div>Touch, tap, and swipe controls are supported in the app.</div></li>
+      </ul>
+      <div class="startup-actions">
+        <button id="startup-continue" type="button">Start Reading World</button>
+        <div class="startup-footnote">Tip: add this app to your Home Screen for a more app-like experience on iPad and iPhone.</div>
+      </div>
+      <span class="startup-sparkle" style="left:7%;top:18%;animation-delay:-.6s"></span>
+      <span class="startup-sparkle" style="left:88%;top:14%;animation-delay:-1.4s"></span>
+      <span class="startup-sparkle" style="left:82%;top:70%;animation-delay:-2.2s"></span>
+      <span class="startup-sparkle" style="left:14%;top:76%;animation-delay:-2.8s"></span>
+      <span class="startup-sparkle" style="left:57%;top:9%;animation-delay:-1.1s"></span>
+    </div>
+  </div>
+
 
   <script>
     const APP_METADATA = {"awad":{"title":"AWAD — A Word A Day","key":"1"},"basa-tayo":{"title":"Basa Tayo!","key":"2"},"kuwento-tayo":{"title":"Kuwento Tayo!","key":"3"},"fluency-pyramid":{"title":"Fluency Pyramid","key":"4"},"basa-bata-basa":{"title":"Basa, Bata, Basa!","key":"5"},"letter-slide":{"title":"Letter Slide","key":"6"}};
@@ -713,6 +761,7 @@
         loading.classList.remove("show");
         status.textContent = meta.title + " is open. Use the All Apps button to return.";
         try { frame.contentWindow.focus(); } catch {}
+        try { if (window.__TF_STARTUP_OVERLAY__?.dismissed?.()) setTimeout(() => frame.contentWindow?.postMessage({ type: "teacher-francis-activate-audio" }, "*"), 120); } catch {}
       };
       try {
         frame.onload = finish;
@@ -790,6 +839,40 @@
   </script>
 
 
+
+
+<script id="tf-startup-overlay-script">
+(() => {
+  const overlay = document.getElementById("startup-overlay");
+  const btn = document.getElementById("startup-continue");
+  if (!overlay || !btn) return;
+  let dismissed = false;
+  const hide = () => { overlay.hidden = true; };
+  const wakeAllAudio = () => {
+    try { window.__TF_HOME_MUSIC_API?.activateFromGesture?.(); } catch {}
+    try { frame?.contentWindow?.postMessage({ type: "teacher-francis-activate-audio" }, "*"); } catch {}
+  };
+  const enter = async () => {
+    if (dismissed) return;
+    dismissed = true;
+    hide();
+    wakeAllAudio();
+    try {
+      if (currentApp) setTimeout(() => { try { frame?.contentWindow?.postMessage({ type: "teacher-francis-activate-audio" }, "*"); } catch {} }, 180);
+    } catch {}
+  };
+  btn.addEventListener("click", enter);
+  btn.addEventListener("pointerdown", wakeAllAudio, { once: true });
+  document.addEventListener("keydown", event => {
+    if (overlay.hidden) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      enter();
+    }
+  });
+  window.__TF_STARTUP_OVERLAY__ = { dismissed: () => dismissed, wakeAllAudio, enter };
+})();
+</script>
 
 <script src="./shared/pwa-register.js" defer></script>
 
@@ -1138,6 +1221,11 @@
   };
   document.addEventListener("pointerdown", resumeFromGesture, { once: true, capture: true });
   document.addEventListener("keydown", resumeFromGesture, { once: true, capture: true });
+
+  window.__TF_HOME_MUSIC_API = {
+    activateFromGesture: async () => { await setEnabled(enabled, { userGesture: true }); },
+    setEnabled: async value => { await setEnabled(value, { userGesture: true }); }
+  };
 
   updateControl();
   if (enabled && isHomeActive()) fadeIn();
