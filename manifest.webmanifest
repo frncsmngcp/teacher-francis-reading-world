@@ -1,0 +1,36 @@
+{
+  "name": "Teacher Francis Reading World — 6 Learning Adventures",
+  "short_name": "Reading World",
+  "description": "Teacher Francis offline reading adventures: AWAD, Basa Tayo, Kuwento Tayo, Fluency Pyramid, Basa Bata Basa, and Letter Slide.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "orientation": "landscape",
+  "background_color": "#083e47",
+  "theme_color": "#083e47",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
