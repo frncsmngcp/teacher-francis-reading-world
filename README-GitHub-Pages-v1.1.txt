@@ -25,4 +25,4 @@ Mobile landscape update (v1.5.0): all six learning modules now fit to Safari/Chr
 
 v1.5.0: Kuwento Tayo mobile touch fixes, bookshelf swipe, responsive story/question text fitting, dual-orientation PWA support, and improved fullscreen/home controls.
 
-v1.5.1: Kuwento Tayo portrait-phone story fitting now measures the real rendered text height (including late-loaded font metrics), preventing the last story lines from being clipped in the shallow 16:9 reader frame.
+v1.5.2: Kuwento Tayo portrait-phone story fitting now measures the real rendered text height (including late-loaded font metrics), preventing the last story lines from being clipped in the shallow 16:9 reader frame.
