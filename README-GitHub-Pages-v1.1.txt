@@ -18,3 +18,6 @@ HOW TO UPDATE GITHUB PAGES
 
 IMPORTANT
 Do not upload only index.html. The modules, assets, shared folder, manifest, service worker, icons and .nojekyll must stay together with the same folder structure.
+
+Performance update (v1.4.8): Kuwento Tayo illustrations are stored as separate cacheable WebP files for faster online startup. Their exact image bytes and resolution are preserved. After the main interface loads, the complete Reading World library begins downloading quietly in the background whether opened in a browser or as an installed PWA. Cached files are skipped, interrupted downloads resume when the internet returns, and the completed cache supports offline or unstable-internet use.
+Mobile landscape update (v1.4.9): all six learning modules now fit to Safari/Chrome's actually visible small viewport in landscape mode, including when browser toolbars and tab bars are showing. The complete stage scales down instead of being cropped, so bottom/top controls remain reachable. This also applies when switching orientation or when mobile browser chrome changes size.

@@ -609,21 +609,19 @@ const PHONICS_CACHE={};
 
 function scaleStage(){
   const fsEl=document.fullscreenElement || document.webkitFullscreenElement;
-  const vv=window.visualViewport;
-  const vw=Math.max(1,fsEl?.clientWidth || vv?.width || window.innerWidth || document.documentElement.clientWidth || STAGE_W);
-  const vh=Math.max(1,fsEl?.clientHeight || vv?.height || window.innerHeight || document.documentElement.clientHeight || STAGE_H);
-  const margin=fsEl ? 8 : 0;
+  const app=$('app'),vp=window.tfUsableViewport?.()||{width:innerWidth,height:innerHeight};
+  const vw=Math.max(1,fsEl?.clientWidth || app?.clientWidth || vp.width || STAGE_W);
+  const vh=Math.max(1,fsEl?.clientHeight || app?.clientHeight || vp.height || STAGE_H);
+  const margin=fsEl ? 8 : 4;
   const s=Math.min(Math.max(1,vw-margin*2)/STAGE_W, Math.max(1,vh-margin*2)/STAGE_H);
   const stage=$('stage');
-  stage.style.left='50%';
-  stage.style.top='50%';
-  stage.style.transform=`translate(-50%,-50%) scale(${s})`;
+  stage.style.left='50%';stage.style.top='50%';stage.style.transform=`translate(-50%,-50%) scale(${s})`;
 }
 function refreshStageLayout(){
   requestAnimationFrame(()=>{ scaleStage(); requestAnimationFrame(scaleStage); });
   setTimeout(scaleStage,120);
 }
-window.addEventListener('resize', refreshStageLayout);
+window.addEventListener('resize', refreshStageLayout);window.addEventListener('tfviewportchange', refreshStageLayout);
 if(window.visualViewport) window.visualViewport.addEventListener('resize', refreshStageLayout);
 document.addEventListener('fullscreenchange', refreshStageLayout);
 document.addEventListener('webkitfullscreenchange', refreshStageLayout);
@@ -2089,5 +2087,14 @@ document.addEventListener('DOMContentLoaded' , ()=>{ positionStaticElements(); i
   setTimeout(wake,120);setTimeout(wake,700);
 })();
 </script>
+
+<style id="tf-suite-home-bottom-left-override">
+#teacher-francis-suite-home {
+  top: auto !important;
+  right: auto !important;
+  bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+}
+</style>
 </body>
 </html>

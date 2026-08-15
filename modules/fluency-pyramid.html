@@ -695,7 +695,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
     state.lastLevel=state.classProgress.lastLevel||1;keyboardLevel=state.lastLevel;
   }
   function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){toast('Device storage is full. Remove a few large learner photos.')}}
-  function scaleStage(){const s=Math.min(innerWidth/1536,innerHeight/1024);$('stage').style.setProperty('--scale',String(s))}
+  function scaleStage(){const app=$('app'),vp=window.tfUsableViewport?.()||{width:innerWidth,height:innerHeight},w=app?.clientWidth||vp.width,h=app?.clientHeight||vp.height,s=Math.min(w/1536,h/1024);$('stage').style.setProperty('--scale',String(s))}
   function setRunner(learner){setAvatar($('runnerFace'),learner)}
   function applyAvatarCrop(img,crop={x:50,y:50,zoom:100}){if(!img)return;const x=Math.max(0,Math.min(100,Number(crop.x??50))),y=Math.max(0,Math.min(100,Number(crop.y??50))),zoom=Math.max(100,Math.min(220,Number(crop.zoom??100))),scale=zoom/100;img.style.objectPosition=`${x}% ${y}%`;img.style.transformOrigin=`${x}% ${y}%`;img.style.transform=`translateZ(0) scale(${scale})`}
   function setAvatar(el,learner){el.querySelectorAll('.avatar-img').forEach(x=>x.remove());el.style.backgroundImage='';const span=el.querySelector('span');if(span){span.textContent=initials(learner?.name);span.style.display=learner?.photo?'none':''}if(learner?.photo){const img=document.createElement('img'),crop={x:50,y:50,zoom:100,...(learner.crop||{})};img.className='avatar-img';img.src=learner.photo;img.alt='';applyAvatarCrop(img,crop);el.prepend(img)}}
@@ -913,7 +913,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
   function toast(msg){clearTimeout(toastTimer);$('toast').textContent=msg;$('toast').classList.add('show');toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2400)}
   function home(){speechSynthesis.cancel();$('levelRelicFrame').classList.remove('awarded');document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));showScreen('homeScreen');renderHome()}
   function bind(){
-    addEventListener('resize',scaleStage);document.addEventListener('fullscreenchange',scaleStage);
+    addEventListener('resize',scaleStage);addEventListener('tfviewportchange',scaleStage);document.addEventListener('fullscreenchange',scaleStage);
     document.addEventListener('pointerdown',()=>{if(state.music)startMusic()},{once:true});
     $('learnersBtn').onclick=openLearners;$('homePhoto').onclick=openLearners;$('progressBtn').onclick=renderAlbum;$('settingsBtn').onclick=openSettings;$('soundBtn').onclick=toggleSound;$('resetBtn').onclick=resetProgress;$('musicBtn').onclick=toggleMusic;$('musicVolume').oninput=e=>{state.musicVolume=Math.max(0,Math.min(1,Number(e.target.value)||0));$('musicVolumeValue').textContent=`${Math.round(state.musicVolume*100)}%`;if(musicGain)musicGain.gain.value=.08*state.musicVolume;save()};$('customBtn').onclick=openCustom;$('homeFullscreen').onclick=fullscreen;
     $('gameHome').onclick=home;$('gameLevels').onclick=home;$('gameSound').onclick=toggleMusic;$('gameSettings').onclick=openLearners;$('gameFullscreen').onclick=fullscreen;
@@ -1099,5 +1099,14 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
   setTimeout(wake,120);setTimeout(wake,700);
 })();
 </script>
+
+<style id="tf-suite-home-bottom-left-override">
+#teacher-francis-suite-home {
+  top: auto !important;
+  right: auto !important;
+  bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+}
+</style>
 </body>
 </html>

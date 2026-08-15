@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.4.2 Phone Touch & Scale Fix</title>
+  <title>Teacher Francis Reading World — PWA v1.4.9 Mobile Landscape Safe Fit</title>
   <style>
     :root {
       color-scheme: dark;
@@ -27,7 +27,8 @@
       position: fixed;
       left: 50%;
       top: 50%;
-      width: min(100vw, calc(100vh * var(--stage-ratio)));
+      width: min(var(--tf-usable-width, 100vw), calc(var(--tf-usable-height, 100vh) * var(--stage-ratio)));
+      height: min(var(--tf-usable-height, 100vh), calc(var(--tf-usable-width, 100vw) / var(--stage-ratio)));
       aspect-ratio: 1672 / 941;
       transform: translate(-50%, -50%);
       overflow: hidden;
@@ -767,7 +768,7 @@
 <style id="tf-startup-overlay-style">
   #startup-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:clamp(10px,2vw,24px);background:rgba(6,17,29,.18);backdrop-filter:blur(15px) saturate(.88) brightness(.78);-webkit-backdrop-filter:blur(15px) saturate(.88) brightness(.78);overflow:hidden}
   #startup-overlay[hidden]{display:none !important}
-  .startup-card{position:relative;width:min(94vw,1120px);aspect-ratio:3/2;max-height:94vh;border-radius:clamp(20px,2.2vw,32px);filter:drop-shadow(0 24px 46px rgba(0,0,0,.36));animation:tfStartupIn .52s cubic-bezier(.2,.9,.25,1);overflow:hidden}
+  .startup-card{position:relative;width:min(94vw,1120px);aspect-ratio:3/2;max-height:calc(var(--tf-usable-height,94vh) * .94);border-radius:clamp(20px,2.2vw,32px);filter:drop-shadow(0 24px 46px rgba(0,0,0,.36));animation:tfStartupIn .52s cubic-bezier(.2,.9,.25,1);overflow:hidden}
   .startup-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
   #startup-continue{position:absolute;left:38.7%;top:79.0%;width:30.2%;height:12.4%;border:0;border-radius:999px;background:transparent;cursor:pointer;z-index:5;-webkit-tap-highlight-color:transparent;transition:filter .16s ease,transform .16s ease;transform-origin:center}
   #startup-continue:hover,#startup-continue:focus-visible{outline:none;filter:drop-shadow(0 0 18px rgba(255,221,83,.95));transform:scale(1.025)}
@@ -779,11 +780,12 @@
   @keyframes tfStartupIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
   @media (max-aspect-ratio: 4/3){.startup-card{width:min(96vw,960px);max-height:88vh}}
 </style>
+  <script src="./shared/pwa-compat.js"></script>
 </head>
 <body>
   <main id="suite" aria-label="Teacher Francis Reading World">
     <section id="home-screen" class="screen active" aria-label="Choose one of six reading apps">
-      <img id="home-art" alt="Teacher Francis Reading World with six reading app choices" src="./assets/37bc59310acbd4178b33.png">
+      <img id="home-art" alt="Teacher Francis Reading World with six reading app choices" src="./assets/37bc59310acbd4178b33.png" fetchpriority="high" decoding="async">
       <div id="home-vfx" aria-hidden="true"></div>
       <nav id="home-controls" aria-label="Reading apps">
         <button class="launch-hotspot" data-app="awad" aria-label="Open AWAD — A Word A Day" title="AWAD — keyboard 1"></button>
@@ -810,7 +812,7 @@
         <div class="loading-card">
           <div class="spinner" aria-hidden="true"></div>
           <div id="loading-title">Opening reading app…</div>
-          <div id="loading-note">Preparing the offline classroom experience</div>
+          <div id="loading-note">Getting your reading adventure ready…</div>
         </div>
       </div>
       <div id="error-panel" role="alert">
@@ -826,7 +828,7 @@
 
   <div id="startup-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Teacher Francis Reading World">
     <div class="startup-card">
-      <img src="./shared/startup-prompt-approved.png" alt="Welcome to Teacher Francis Reading World. Best viewed in landscape on bigger devices or desktop. Sounds or read-aloud may vary by device, especially in Filipino. Enjoy and have fun reading.">
+      <img src="./shared/startup-prompt-approved.png" alt="Welcome to Teacher Francis Reading World. Best viewed in landscape on bigger devices or desktop. Sounds or read-aloud may vary by device, especially in Filipino. Enjoy and have fun reading." fetchpriority="high" decoding="async">
       <label class="startup-check" aria-label="Do not show this startup message again"><input id="startup-hide" type="checkbox"><span class="startup-checkmark" aria-hidden="true">✓</span><span class="sr-only">Do not show this again</span></label>
       <button id="startup-continue" type="button" aria-label="Start Reading World"><span class="sr-only">Start Reading World</span></button>
     </div>
@@ -951,6 +953,28 @@
     document.querySelectorAll(".launch-hotspot").forEach(button => {
       button.addEventListener("click", () => openApp(button.dataset.app));
     });
+
+    // Warm only the module the learner is likely to open next.
+    // This reduces launch time online without downloading every app up front.
+    const prefetchedApps = new Set();
+    function prefetchAppModule(id) {
+      if (location.protocol === "file:" || prefetchedApps.has(id)) return;
+      const url = APP_URLS[id];
+      if (!url) return;
+      prefetchedApps.add(id);
+      const link = document.createElement("link");
+      link.rel = "prefetch";
+      link.href = url;
+      link.as = "document";
+      document.head.appendChild(link);
+    }
+    document.querySelectorAll(".launch-hotspot").forEach(button => {
+      const warm = () => prefetchAppModule(button.dataset.app);
+      button.addEventListener("pointerenter", warm, { passive: true });
+      button.addEventListener("focus", warm, { passive: true });
+      button.addEventListener("touchstart", warm, { passive: true, once: true });
+    });
+
     document.getElementById("error-home").addEventListener("click", () => showHome());
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", async () => {

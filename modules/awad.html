@@ -683,28 +683,13 @@ function dayNumber(){
 }
 
 function scaleStage(){
-  const app=$("app");
-  const stage=$("stage");
+  const app=$("app"),stage=$("stage");
   if(!app||!stage)return;
-
-  // Measure the ACTUAL visible app area, not visualViewport.
-  // Some Chromium/Edge configurations report a visualViewport that is
-  // taller than the browser's real content area, which caused cropping.
-  const rect=app.getBoundingClientRect();
-  const w=Math.max(1,rect.width);
-  const h=Math.max(1,rect.height);
-
-  // Small safety inset keeps the artwork fully visible even when the
-  // browser has fractional CSS-pixel rounding.
+  const vp=window.tfUsableViewport?.()||{width:innerWidth,height:innerHeight};
+  const w=Math.max(1,app.clientWidth||vp.width),h=Math.max(1,app.clientHeight||vp.height);
   const inset=document.fullscreenElement?0:6;
-  const usableW=Math.max(1,w-inset*2);
-  const usableH=Math.max(1,h-inset*2);
-
-  const s=Math.min(usableW/1672,usableH/941);
-
-  stage.style.left="50%";
-  stage.style.top="50%";
-  stage.style.transformOrigin="50% 50%";
+  const s=Math.min(Math.max(1,w-inset*2)/1672,Math.max(1,h-inset*2)/941);
+  stage.style.left="50%";stage.style.top="50%";stage.style.transformOrigin="50% 50%";
   stage.style.transform=`translate(-50%,-50%) scale(${s})`;
 }
 function showScreen(id){
@@ -1224,7 +1209,7 @@ function refreshLayout(){
     requestAnimationFrame(()=>fitAll());
   }
 }
-window.addEventListener("resize",refreshLayout);
+window.addEventListener("resize",refreshLayout);window.addEventListener("tfviewportchange",refreshLayout);
 window.addEventListener("orientationchange",()=>setTimeout(refreshLayout,80));
 if("ResizeObserver" in window){
   const appResizeObserver=new ResizeObserver(()=>refreshLayout());
@@ -1400,5 +1385,14 @@ setTimeout(()=>{
   setTimeout(wake,120);setTimeout(wake,700);
 })();
 </script>
+
+<style id="tf-suite-home-bottom-left-override">
+#teacher-francis-suite-home {
+  top: auto !important;
+  right: auto !important;
+  bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+}
+</style>
 </body>
 </html>

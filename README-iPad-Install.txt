@@ -17,9 +17,10 @@ HOW TO PUT IT ON AN iPAD / iPHONE
    IMPORTANT: opening index.html directly from Files/AirDrop (file://) cannot install a PWA because iOS only enables service workers on secure web origins.
 2. On the iPad/iPhone, open the HTTPS URL in SAFARI.
 3. Keep the first launch open while connected to Wi‑Fi so Reading World can save the offline files.
-4. Tap Safari Share → Add to Home Screen. If your iPad/iPhone shows an “Open as Web App” switch, leave it ON, then tap Add.
-5. Launch Reading World from the Home Screen.
-6. For the safest offline check, while still online open each of the six modules once. Then close it, turn off Wi‑Fi, reopen Reading World from the Home Screen, and test the modules.
+4. The full Reading World library downloads quietly in the background after the main interface loads. You do not need to open every module first.
+5. Tap Safari Share → Add to Home Screen. If your iPad/iPhone shows an “Open as Web App” switch, leave it ON, then tap Add.
+6. Launch Reading World from the Home Screen.
+7. For an offline check, keep the site open on Wi‑Fi long enough for the background library download to finish, then turn off Wi‑Fi and reopen Reading World.
 
 
 TOUCHSCREEN GESTURES
@@ -41,3 +42,10 @@ From this folder in Terminal:
 Then open:
   http://localhost:8080
 Service workers are allowed on localhost for testing. For an iPad, use a real HTTPS host.
+
+
+LANDSCAPE PHONE / TABLET FIT (v1.4.9)
+- All six modules now scale to the visible Safari/Chrome content area, not the larger hidden layout viewport.
+- Browser toolbars/tab bars no longer cover the top or bottom of the learning interface.
+- The full module remains visible and tappable; side margins may become wider in very short landscape browser windows.
+- Add to Home Screen is still recommended for the largest distraction-free classroom view.
