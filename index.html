@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.4.9 Mobile Landscape Safe Fit</title>
+  <title>Teacher Francis Reading World — PWA v1.5.0 Kuwento Mobile Touch & Text Fix</title>
   <style>
     :root {
       color-scheme: dark;
@@ -23,6 +23,9 @@
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     }
     button { font: inherit; }
+    /* Browser fallback used when iPhone Safari does not expose the Fullscreen API. */
+    body.tf-pseudo-fullscreen #suite{width:var(--tf-usable-width,100vw)!important;height:var(--tf-usable-height,100vh)!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;}
+
     #suite {
       position: fixed;
       left: 50%;
@@ -806,7 +809,7 @@
     </section>
 
     <section id="player-screen" class="screen" aria-label="Selected reading app">
-      <iframe id="app-frame" title="Teacher Francis reading app" allow="autoplay *; fullscreen *"></iframe>
+      <iframe id="app-frame" title="Teacher Francis reading app" allow="autoplay *; fullscreen *" allowfullscreen webkitallowfullscreen></iframe>
       <button id="player-fullscreen" type="button" aria-label="Open Basa Tayo in fullscreen mode"><span class="icon" aria-hidden="true">⛶</span><span>Fullscreen</span></button>
       <div id="loading" role="status" aria-live="polite">
         <div class="loading-card">
@@ -935,6 +938,7 @@
     function showHome({ updateHistory = true } = {}) {
       launchToken += 1;
       currentApp = null;
+      document.body.classList.remove('tf-pseudo-fullscreen');
       updatePlayerOverlays();
       loading.classList.remove("show");
       errorPanel.classList.remove("show");
@@ -992,8 +996,29 @@
       document.addEventListener("fullscreenchange", syncFullscreenLabel);
       syncFullscreenLabel();
     }
+    async function toggleSuiteFullscreen(){
+      try{
+        const h=window.webkit?.messageHandlers?.nativeFullscreen;
+        if(h){h.postMessage('toggle');return;}
+      }catch(_){ }
+      try{
+        if(document.fullscreenElement||document.webkitFullscreenElement){
+          await (document.exitFullscreen?.()||document.webkitExitFullscreen?.());
+          document.body.classList.remove('tf-pseudo-fullscreen');
+          return;
+        }
+        const fn=suite.requestFullscreen||suite.webkitRequestFullscreen;
+        if(fn){await fn.call(suite);return;}
+      }catch(_){ }
+      // iPhone Safari: no document fullscreen API. Expand the app to every
+      // available CSS pixel and let the child module refit to the visible area.
+      document.body.classList.toggle('tf-pseudo-fullscreen');
+      try{scrollTo({top:1,left:0,behavior:'smooth'})}catch(_){scrollTo(0,1)}
+      setTimeout(()=>window.tfApplySafeViewport?.(),80);
+    }
     window.addEventListener("message", event => {
       if (event.data?.type === "teacher-francis-suite-home") showHome();
+      if (event.data?.type === "teacher-francis-suite-fullscreen") toggleSuiteFullscreen();
     });
     window.addEventListener("keydown", event => {
       if (currentApp) return;

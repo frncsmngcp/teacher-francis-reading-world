@@ -111,6 +111,11 @@
   document.addEventListener('click', primeSpeech, {passive:true, once:false});
   try { navigator.storage?.persist?.(); } catch (_) {}
 
+  // Kuwento Tayo owns its shelf and reader gestures. Do not install the
+  // suite-wide capture gesture bridge there: capture-level preventDefault can
+  // interfere with dragging across book buttons on iPhone/iPad Safari.
+  if (moduleName === 'kuwento-tayo') return;
+
   // iPad/iPhone gesture bridge. This does not change module visuals; it maps
   // natural swipes to the same navigation actions the modules already expose.
   const interactiveSelector = [

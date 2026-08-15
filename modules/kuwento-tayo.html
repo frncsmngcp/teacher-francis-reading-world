@@ -264,6 +264,43 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
   transform:none !important;
 }
 </style>
+<style id="kuwento-mobile-reader-final-fix">
+/* Mobile/touch reliability: the bookshelf owns horizontal swipes while still
+   allowing vertical browser gestures and pinch zoom. */
+#shelf,.shelf-grid,.book-card{touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
+#reader{touch-action:pan-y pinch-zoom}
+
+/* Keep status content inside the baked cream plaque even on a tiny 16:9
+   viewport. JS switches it to a compact two-line form when needed. */
+.reader-status{
+  left:87.12% !important; top:3.22% !important; width:9.8% !important; height:6.5% !important;
+  padding:.05em .18em .10em !important; display:flex !important; flex-direction:column !important;
+  align-items:center !important; justify-content:center !important; gap:0 !important;
+  overflow:hidden !important; white-space:normal !important; text-align:center !important;
+  line-height:1.02 !important; letter-spacing:-.02em !important; font-size:clamp(6px,.68vw,13px) !important;
+}
+.reader-status .status-line{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:clip}
+
+/* Compact controls leave more vertical room for story copy on phones. */
+.stage.compact-ui .right-page{padding-top:1.4%;padding-bottom:1.3%}
+.stage.compact-ui .story-copy{padding-top:0;padding-bottom:.08em}
+.stage.compact-ui .story-title{line-height:1.12;padding:0 0 .08em;margin-bottom:.7%}
+.stage.compact-ui .story-text{line-height:1.18;padding:.02em 0 .12em;text-wrap:wrap}
+.stage.compact-ui .reading-focus-bar{gap:3px;margin-top:.35%;font-size:clamp(7px,.64vw,11px)}
+.stage.compact-ui .focus-mini{border-width:1px;padding:2px 5px;box-shadow:none}
+.stage.compact-ui .scene-art .scene-tag{padding-top:.9%;padding-bottom:1.05%;font-size:clamp(7px,.75vw,14px)}
+.stage.compact-ui .reader-nav{border-width:2px}
+
+/* Very small device safety. The text fitter supplies the actual font size; the
+   CSS here removes hard minimums that used to force clipping. */
+@media (max-height:560px),(max-width:900px){
+  .story-title{font-size:clamp(10px,1.05vw,18px)}
+  .story-text{font-size:clamp(12px,2.1vw,30px)}
+  .q-text{font-size:clamp(12px,1.8vw,26px)}
+  .choice{font-size:clamp(9px,1.15vw,18px)}
+  .reader-status{font-size:clamp(6px,.62vw,10px) !important}
+}
+</style>
   <script src="../shared/pwa-compat.js"></script>
 </head>
 <body>
@@ -353,8 +390,15 @@ function renderShelf(){
  const end=Math.min(start+per,books.length);const levels=[...new Set(slice.map(b=>b.level))].join(' • ');$('#shelfLabel').textContent=`${languageLabel()} • Books ${start+1}–${end} • ${levels}`;
 }
 function openBook(n){state.book=STORIES[state.lang].find(b=>b.n===n);state.scene=0;state.mode='story';state.qIndex=0;state.qScore=0;state.qLocked=false;setScreen('reader');renderReader();clickChime();if(settings.autoVoice)setTimeout(readCurrent,300)}
-function fitReaderStatus(){const el=$('#readerStatus');if(!el)return;const stageW=$('#stage')?.clientWidth||window.innerWidth;let px=Math.min(13,Math.max(8,stageW*.0072));el.style.fontSize=px+'px';let guard=30;while(guard--&&el.scrollWidth>Math.max(0,el.clientWidth-8)&&px>7){px-=.35;el.style.fontSize=px+'px';}}
-function renderReader(){if(!state.book)return;const b=state.book;$('#readerStatus').textContent=`${state.lang==='en'?'🇬🇧':'🇵🇭'} Book ${b.n} • ${state.mode==='story'?`Page ${state.scene+1}/${b.scenes.length}`:`Q ${state.qIndex+1}/5`}`;fitReaderStatus();
+function updateCompactUI(){const st=$('#stage');if(!st)return false;const compact=st.clientHeight<560||st.clientWidth<900;st.classList.toggle('compact-ui',compact);return compact;}
+function fitReaderStatus(){
+ const el=$('#readerStatus');if(!el||!state.book)return;const st=$('#stage');const stageW=st?.clientWidth||window.innerWidth,stageH=st?.clientHeight||window.innerHeight;const compact=updateCompactUI();const b=state.book;
+ if(compact){const page=state.mode==='story'?`${state.scene+1}/${b.scenes.length}`:`Q ${state.qIndex+1}/5`;el.innerHTML=`<span class="status-line">${state.lang==='en'?'🇬🇧':'🇵🇭'} ${b.n}</span><span class="status-line">${page}</span>`;}
+ else el.textContent=`${state.lang==='en'?'🇬🇧':'🇵🇭'} Book ${b.n} • ${state.mode==='story'?`Page ${state.scene+1}/${b.scenes.length}`:`Q ${state.qIndex+1}/5`}`;
+ let px=compact?Math.min(10,Math.max(6,stageH*.0165)):Math.min(13,Math.max(8,stageW*.0072));el.style.fontSize=px+'px';let guard=40;
+ while(guard--&&(el.scrollWidth>el.clientWidth+1||el.scrollHeight>el.clientHeight+1)&&px>5.5){px-=.25;el.style.fontSize=px+'px';}
+}
+function renderReader(){if(!state.book)return;fitReaderStatus();const b=state.book;
  if(state.mode==='story') renderStory(); else renderQuestion();
 }
 function sceneCover(book){const group=COVER_IMAGES[state.lang]||{};const src=group[String(book.n)]||null;return src?`<img class="cover-image" src="${src}" alt="${book.title} book cover">`:`<div style="font-size:58px">📖</div><div style="font-weight:900;text-align:center;padding:8%">${book.title}</div>`}
@@ -373,13 +417,27 @@ function storyTextMarkup(text){
  }).join('');
 }
 function fitStoryText(){
- const copy=document.querySelector('.story-copy'),text=document.querySelector('.story-text'),title=document.querySelector('.story-title');if(!copy||!text)return;
- const sw=$('#stage').clientWidth||window.innerWidth;let size=Math.min(54,Math.max(28,sw*.0305));const min=Math.min(size,Math.max(19,sw*.015));
+ const stage=$('#stage'),copy=document.querySelector('.story-copy'),text=document.querySelector('.story-text'),title=document.querySelector('.story-title');
+ if(!stage||!copy||!text)return;updateCompactUI();
+ const sw=stage.clientWidth||window.innerWidth,sh=stage.clientHeight||window.innerHeight;
+ // Height matters as much as width on phone landscape / portrait-letterboxed views.
+ let size=Math.min(54,Math.max(16,Math.min(sw*.0305,sh*.057)));
+ let minSize=Math.max(11,Math.min(sw*.014,sh*.027));
+ let titleSize=Math.min(24,Math.max(10,Math.min(sw*.014,sh*.030)));
+ if(title)title.style.fontSize=titleSize+'px';
  text.style.fontSize=size+'px';
- const titleStyle=title?getComputedStyle(title):null;const margin=titleStyle?parseFloat(titleStyle.marginBottom)||0:0;
- const available=Math.max(40,copy.clientHeight-(title?.offsetHeight||0)-margin-2);let guard=90;
- while(guard--&&(text.scrollHeight>available+1||text.scrollWidth>copy.clientWidth+1)&&size>min){size-=.65;text.style.fontSize=size+'px';}
+ // Force layout and compare the complete copy box, not only the text node.
+ let guard=120;
+ const tooLarge=()=>copy.scrollHeight>copy.clientHeight+1||text.scrollWidth>copy.clientWidth+1;
+ while(guard--&&tooLarge()&&size>minSize){size-=.45;text.style.fontSize=size+'px';}
+ // Long titles can still steal room on tiny screens; reduce them second.
+ guard=50;
+ while(guard--&&tooLarge()&&title&&titleSize>8.5){titleSize-=.35;title.style.fontSize=titleSize+'px';}
+ // Final safety: allow the body to go below the preferred floor rather than clip.
+ guard=50;
+ while(guard--&&tooLarge()&&size>8.5){size-=.35;text.style.fontSize=size+'px';}
 }
+
 function clearFocusToken(){document.querySelectorAll('.story-text .focus-active').forEach(x=>x.classList.remove('focus-active'))}
 function activateFocusToken(el,linger=false){if(!el)return;clearFocusToken();el.classList.add('focus-active');clearTimeout(activateFocusToken._tm);if(linger)activateFocusToken._tm=setTimeout(clearFocusToken,850)}
 function bindStoryFocus(){
@@ -400,9 +458,16 @@ function renderStory(){const b=state.book;const sceneSrc=SCENE_IMAGES[state.lang
  const txt=b.scenes[state.scene];const focusClass=settings.readingFocus?'focus-enabled':'';const unitClass=settings.focusUnit==='syllable'?'focus-syllable':'focus-word';
  $('#rightPage').innerHTML=`<div class="story-copy"><div class="story-title">${b.title}</div><div id="storyText" class="story-text ${focusClass} ${unitClass}">${storyTextMarkup(txt)}</div></div><div class="reading-focus-bar" aria-label="Reading focus controls"><button id="readerFocusToggle" class="focus-mini ${settings.readingFocus?'on':''}" aria-pressed="${settings.readingFocus}">${settings.readingFocus?'Focus ON':'Focus OFF'}</button><button class="focus-mini ${settings.focusUnit==='word'?'unit-active':''}" data-reader-unit="word">Word</button><button class="focus-mini ${settings.focusUnit==='syllable'?'unit-active':''}" data-reader-unit="syllable">Syllable</button></div>`;
  bindReaderFocusControls();bindStoryFocus();requestAnimationFrame(fitStoryText);$('#prevBtn').disabled=state.scene===0;$('#nextBtn').disabled=false;}
+function fitQuestionText(){
+ const stage=$('#stage'),wrap=document.querySelector('.question-wrap'),q=document.querySelector('.q-text'),choices=[...document.querySelectorAll('.choice')],num=document.querySelector('.q-number');if(!stage||!wrap||!q)return;updateCompactUI();
+ const sw=stage.clientWidth||innerWidth,sh=stage.clientHeight||innerHeight;let qSize=Math.min(36,Math.max(12,Math.min(sw*.022,sh*.046)));let cSize=Math.min(22,Math.max(9,Math.min(sw*.0145,sh*.031)));let nSize=Math.min(18,Math.max(8,Math.min(sw*.0105,sh*.023)));
+ q.style.fontSize=qSize+'px';choices.forEach(x=>x.style.fontSize=cSize+'px');if(num)num.style.fontSize=nSize+'px';let guard=100;
+ const tooLarge=()=>wrap.scrollHeight>wrap.clientHeight+1||wrap.scrollWidth>wrap.clientWidth+1;
+ while(guard--&&tooLarge()&&(qSize>9||cSize>7)){if(qSize>9)qSize-=.4;if(cSize>7)cSize-=.28;q.style.fontSize=qSize+'px';choices.forEach(x=>x.style.fontSize=cSize+'px');}
+}
 function renderQuestion(){const b=state.book,q=b.questions[state.qIndex];$('#leftPage').innerHTML=`<div class="scene-art comprehension-art"><div class="scene-tag">Comprehension</div>${sceneCover(b)}<div class="art-note">Score: ${state.qScore} / ${state.qIndex}</div></div>`;
  const letters=['A','B','C'];$('#rightPage').innerHTML=`<div class="question-wrap"><div class="q-number">Question ${state.qIndex+1} of 5</div><div class="q-text">${q[0]}</div><div class="choices">${q[1].map((c,i)=>`<button class="choice" data-choice="${i}"><b>${letters[i]}.</b> ${c}</button>`).join('')}</div><div class="q-progress">${[0,1,2,3,4].map(i=>`<span class="q-dot ${i<=state.qIndex?'on':''}"></span>`).join('')}</div></div>`;
- $$('.choice').forEach(btn=>btn.onclick=()=>answerQuestion(Number(btn.dataset.choice)));$('#prevBtn').disabled=state.qIndex===0;$('#nextBtn').disabled=true;state.qLocked=false;}
+ $$('.choice').forEach(btn=>btn.onclick=()=>answerQuestion(Number(btn.dataset.choice)));$('#prevBtn').disabled=state.qIndex===0;$('#nextBtn').disabled=true;state.qLocked=false;requestAnimationFrame(fitQuestionText);}
 function answerQuestion(i){if(state.qLocked)return;state.qLocked=true;const q=state.book.questions[state.qIndex];const correct=q[2];$$('.choice').forEach((b,idx)=>{if(idx===correct)b.classList.add('correct');else if(idx===i)b.classList.add('wrong')});if(i===correct){state.qScore++;successTone()}else errorTone();setTimeout(()=>{if(state.qIndex<4){state.qIndex++;renderReader();if(settings.autoVoice)readCurrent()}else finishBook()},850)}
 function nextPage(){if(state.mode==='story'){if(state.scene<state.book.scenes.length-1){state.scene++;renderReader();if(settings.autoVoice)readCurrent()}else{state.mode='quiz';state.qIndex=0;state.qScore=0;renderReader();toast(state.lang==='en'?'Time for 5 comprehension questions!':'Oras na para sa 5 tanong!');if(settings.autoVoice)readCurrent()}}}
 function prevPage(){if(state.mode==='story'){if(state.scene>0){state.scene--;renderReader()}}else{if(state.qIndex>0){state.qIndex--;renderReader()}else{state.mode='story';state.scene=state.book.scenes.length-1;renderReader()}}}
@@ -423,7 +488,25 @@ $('#bgmVol').oninput=e=>{settings.bgmVol=+e.target.value;saveSettings();if(setti
 $('#resetProgress').onclick=()=>{if(confirm('Reset all Kuwento Tayo reading progress and badges?')){progress={};saveProgress();renderShelf();toast('Reading progress reset.')}};
 $('#doorEn').onclick=()=>openLibrary('en');$('#doorFil').onclick=()=>openLibrary('fil');$('#shelfPrev').onclick=()=>{state.shelfPage--;renderShelf();clickChime()};$('#shelfNext').onclick=()=>{state.shelfPage++;renderShelf();clickChime()};$('#readerBack').onclick=()=>{speechSynthesis.cancel();setScreen('shelf');renderShelf();clickChime()};$('#prevBtn').onclick=prevPage;$('#nextBtn').onclick=nextPage;$('#readAudio').onclick=readCurrent;
 $('#retryQuiz').onclick=()=>{$('#resultModal').classList.remove('open');state.mode='quiz';state.qIndex=0;state.qScore=0;renderReader()};$('#backShelfResult').onclick=()=>{$('#resultModal').classList.remove('open');setScreen('shelf');renderShelf()};
-function toggleFullscreen(){const el=document.documentElement;if(!document.fullscreenElement)el.requestFullscreen?.();else document.exitFullscreen?.()}
+async function toggleFullscreen(){
+ try{
+   if(window.parent&&window.parent!==window){
+     // Same-origin direct call keeps the tap's user activation for the Fullscreen API.
+     try{if(typeof window.parent.toggleSuiteFullscreen==='function'){await window.parent.toggleSuiteFullscreen();return;}}catch(_){ }
+     window.parent.postMessage({type:'teacher-francis-suite-fullscreen'},'*');return;
+   }
+ }catch(_){ }
+ const el=document.documentElement;
+ try{
+   if(document.fullscreenElement||document.webkitFullscreenElement){await (document.exitFullscreen?.()||document.webkitExitFullscreen?.());return;}
+   const fn=el.requestFullscreen||el.webkitRequestFullscreen;if(fn){await fn.call(el);return;}
+ }catch(_){ }
+ // iPhone Safari does not expose document fullscreen. Keep the control useful by
+ // asking the browser to collapse chrome where it permits it and refitting.
+ document.documentElement.classList.toggle('kuwento-focus-view');
+ try{window.scrollTo({top:1,left:0,behavior:'smooth'})}catch(_){window.scrollTo(0,1)}
+ setTimeout(()=>window.tfApplySafeViewport?.(),80);
+}
 
 // Voice — independent English and Filipino selectors.
 let voices=[];
@@ -498,10 +581,34 @@ $('#reader').addEventListener('pointerdown',e=>{
 $('#reader').addEventListener('pointermove',e=>{if(!readerSwipe||readerSwipe.id!==e.pointerId||readerPointers.size>1)return;const dx=e.clientX-readerSwipe.x,dy=e.clientY-readerSwipe.y;if(!readerSwipe.fromFocus&&Math.abs(dx)>24&&Math.abs(dx)>Math.abs(dy)*1.25&&e.cancelable)e.preventDefault();});
 $('#reader').addEventListener('pointerup',e=>{readerPointers.delete(e.pointerId);if(!readerSwipe||readerSwipe.id!==e.pointerId){if(!readerPointers.size)readerSwipe=null;return;}const g=readerSwipe;readerSwipe=null;const dx=e.clientX-g.x,dy=e.clientY-g.y,dt=performance.now()-g.t,threshold=g.fromFocus?110:72;if(dt<1200&&Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.3){if(dx<0)nextPage();else prevPage();}});
 $('#reader').addEventListener('pointercancel',e=>{readerPointers.delete(e.pointerId);readerSwipe=null});
-let fitTimer;window.addEventListener('resize',()=>{clearTimeout(fitTimer);fitTimer=setTimeout(()=>{if(state.screen==='reader'&&state.mode==='story')fitStoryText()},80)});window.addEventListener('orientationchange',()=>setTimeout(()=>{if(state.screen==='reader'&&state.mode==='story')fitStoryText()},180));
+
+// Native bookshelf swipe that works even when the gesture starts on a book.
+// A completed drag suppresses the synthetic click so a book is not opened by accident.
+let shelfSwipe=null,suppressShelfClickUntil=0;
+const shelfEl=$('#shelf');
+shelfEl.addEventListener('pointerdown',e=>{
+ if(state.screen!=='shelf'||(e.pointerType==='mouse'&&e.button!==0)||e.isPrimary===false)return;
+ if(e.target.closest('.shelf-home,.shelf-full,.shelf-settings,.badge-float,#teacher-francis-suite-home'))return;
+ shelfSwipe={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),drag:false};
+ try{shelfEl.setPointerCapture(e.pointerId)}catch(_){ }
+});
+shelfEl.addEventListener('pointermove',e=>{
+ if(!shelfSwipe||shelfSwipe.id!==e.pointerId)return;const dx=e.clientX-shelfSwipe.x,dy=e.clientY-shelfSwipe.y;
+ if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)*1.15){shelfSwipe.drag=true;if(e.cancelable)e.preventDefault();}
+},{passive:false});
+shelfEl.addEventListener('pointerup',e=>{
+ if(!shelfSwipe||shelfSwipe.id!==e.pointerId)return;const g=shelfSwipe;shelfSwipe=null;const dx=e.clientX-g.x,dy=e.clientY-g.y,dt=performance.now()-g.t;
+ if(g.drag&&dt<1400&&Math.abs(dx)>=42&&Math.abs(dx)>Math.abs(dy)*1.15){suppressShelfClickUntil=performance.now()+500;state.shelfPage+=dx<0?1:-1;renderShelf();clickChime();if(e.cancelable)e.preventDefault();}
+},{passive:false});
+shelfEl.addEventListener('pointercancel',()=>{shelfSwipe=null});
+shelfEl.addEventListener('click',e=>{if(performance.now()<suppressShelfClickUntil&&e.target.closest('.book-card')){e.preventDefault();e.stopImmediatePropagation();}},true);
+
+// Refit text after any real stage size change (browser chrome, rotation, PWA mode).
+if('ResizeObserver'in window){new ResizeObserver(()=>{updateCompactUI();fitReaderStatus();if(state.screen==='reader'){if(state.mode==='story')requestAnimationFrame(fitStoryText);else requestAnimationFrame(fitQuestionText)}}).observe($('#stage'));}
+let fitTimer;window.addEventListener('resize',()=>{clearTimeout(fitTimer);fitTimer=setTimeout(()=>{if(state.screen==='reader'){if(state.mode==='story')fitStoryText();else fitQuestionText()}},80)});window.addEventListener('orientationchange',()=>setTimeout(()=>{if(state.screen==='reader'){if(state.mode==='story')fitStoryText();else fitQuestionText()}},180));
 document.addEventListener('keydown',e=>{if(e.key==='f'||e.key==='F')toggleFullscreen();if(e.key==='Escape')$$('.modal.open').forEach(m=>m.classList.remove('open'));if(state.screen==='shelf'){if(e.key==='ArrowLeft'){state.shelfPage--;renderShelf()}if(e.key==='ArrowRight'){state.shelfPage++;renderShelf()}}else if(state.screen==='reader'){if(e.key==='ArrowLeft')prevPage();if(e.key==='ArrowRight')nextPage();if(e.key==='Enter')readCurrent()}});
 
-window.addEventListener('resize',()=>requestAnimationFrame(fitReaderStatus));window.addEventListener('tfviewportchange',()=>requestAnimationFrame(()=>{fitReaderStatus();if(state.screen==='reader'&&state.mode==='story')fitStoryText()}));
+window.addEventListener('resize',()=>requestAnimationFrame(fitReaderStatus));window.addEventListener('tfviewportchange',()=>requestAnimationFrame(()=>{fitReaderStatus();if(state.screen==='reader'){if(state.mode==='story')fitStoryText();else fitQuestionText()}}));
 </script>
 
 
@@ -588,9 +695,16 @@ window.addEventListener('resize',()=>requestAnimationFrame(fitReaderStatus));win
 (() => {
   const goHome = () => {
     try { speechSynthesis?.cancel?.(); } catch {}
-    parent.postMessage({ type: "teacher-francis-suite-home" }, "*");
+    try {
+      if (window.parent && window.parent !== window) {
+        try { if (typeof window.parent.showHome === "function") { window.parent.showHome(); return; } } catch {}
+        parent.postMessage({ type: "teacher-francis-suite-home" }, "*");
+      } else location.href = "../index.html";
+    } catch { location.href = "../index.html"; }
   };
-  document.getElementById("teacher-francis-suite-home")?.addEventListener("click", goHome);
+  const homeBtn=document.getElementById("teacher-francis-suite-home");let homeTouchAt=0;
+  homeBtn?.addEventListener("pointerup", event=>{if(event.pointerType!=="mouse"){homeTouchAt=performance.now();goHome();}});
+  homeBtn?.addEventListener("click", ()=>{if(performance.now()-homeTouchAt>450)goHome();});
   document.addEventListener("keydown", event => {
     if (event.shiftKey && event.key === "Escape") {
       event.preventDefault();
