@@ -45,6 +45,39 @@
       const de = document.documentElement;
       de.style.setProperty('--tf-usable-width', `${vp.width}px`);
       de.style.setProperty('--tf-usable-height', `${vp.height}px`);
+      de.style.setProperty('--tf-usable-center-x', `${vp.width / 2}px`);
+      de.style.setProperty('--tf-usable-center-y', `${vp.height / 2}px`);
+
+      // The suite shell is aspect-ratio constrained. Center it against the measured
+      // usable viewport instead of CSS 50%, which some mobile browsers calculate
+      // from a taller layout viewport hidden behind their address/tool bars.
+      const suite = document.getElementById('suite');
+      if (suite) {
+        const ratio = 1672 / 941;
+        const usableW = Math.max(1, vp.width);
+        const usableH = Math.max(1, vp.height);
+        const w = Math.min(usableW, usableH * ratio);
+        const h = w / ratio;
+        suite.style.setProperty('left', `${usableW / 2}px`, 'important');
+        suite.style.setProperty('top', `${usableH / 2}px`, 'important');
+        suite.style.setProperty('width', `${w}px`, 'important');
+        suite.style.setProperty('height', `${h}px`, 'important');
+        suite.style.setProperty('transform', 'translate(-50%,-50%)', 'important');
+      }
+
+      // Fixed top-level dialogs need the same treatment in portrait browsers.
+      // `inset:0` can otherwise use the larger layout viewport and make a visually
+      // centered card appear too low on the actually visible phone screen.
+      ['startup-overlay','global-reset-dialog','tf-install-modal'].forEach(id => {
+        const overlay = document.getElementById(id);
+        if (!overlay) return;
+        overlay.style.setProperty('left','0px','important');
+        overlay.style.setProperty('top','0px','important');
+        overlay.style.setProperty('right','auto','important');
+        overlay.style.setProperty('bottom','auto','important');
+        overlay.style.setProperty('width',`${vp.width}px`,'important');
+        overlay.style.setProperty('height',`${vp.height}px`,'important');
+      });
 
       // Fixed root shells must use the actually visible browser viewport,
       // not the larger layout viewport hidden behind Safari's toolbars.

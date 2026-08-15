@@ -10,6 +10,10 @@
   let modal = null;
   let launcher = null;
   let autoShown = false;
+  let installedDetected = false;
+  let installCheckInFlight = null;
+  let lastInstallCheckAt = 0;
+  const INSTALL_RECHECK_MS = 10000;
 
   const isStandalone = () => {
     try {
@@ -192,7 +196,7 @@
       #tf-install-launcher:active{transform:translateY(1%) scale(.98)}
       #tf-install-launcher[hidden]{display:none!important}
 
-      #tf-install-modal{position:fixed;inset:0;z-index:12000;display:none;place-items:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(2,15,25,.7);backdrop-filter:blur(13px) saturate(.9);-webkit-backdrop-filter:blur(13px) saturate(.9)}
+      #tf-install-modal{position:fixed;inset:auto;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:12000;display:none;place-items:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(2,15,25,.7);backdrop-filter:blur(13px) saturate(.9);-webkit-backdrop-filter:blur(13px) saturate(.9)}
       #tf-install-modal.open{display:grid}
       .tf-install-card{position:relative;width:min(92vw,640px);max-height:min(88vh,720px);overflow:auto;overscroll-behavior:contain;padding:clamp(22px,4vw,38px);border-radius:30px;border:2px solid rgba(255,239,165,.92);color:#3f2a18;background:linear-gradient(180deg,#fff8db 0%,#f8e8bc 100%);box-shadow:0 30px 90px rgba(0,0,0,.48),inset 0 0 0 5px rgba(185,116,32,.14);-webkit-overflow-scrolling:touch}
       .tf-install-card::before{content:"";position:absolute;left:-12%;right:-12%;top:-95px;height:190px;pointer-events:none;background:radial-gradient(circle,rgba(255,214,75,.44),rgba(255,214,75,0) 68%)}
@@ -226,6 +230,7 @@
     launcher.id = 'tf-install-launcher';
     launcher.type = 'button';
     launcher.textContent = 'Install App';
+    launcher.hidden = true;
     launcher.setAttribute('aria-label', 'Install Teacher Francis Reading World');
     homeScreen.appendChild(launcher);
 
@@ -249,8 +254,9 @@
         </div>
       </section>`;
     document.body.appendChild(modal);
+    try { window.tfApplySafeViewport?.(); } catch (_) {}
 
-    launcher.addEventListener('click', () => openModal(true));
+    launcher.addEventListener('click', () => { void openModal(true); });
     modal.querySelector('.tf-install-close').addEventListener('click', () => closeModal(true));
     modal.querySelector('#tf-install-later').addEventListener('click', () => closeModal(true));
     modal.addEventListener('pointerdown', event => {
@@ -283,8 +289,8 @@
     action.disabled = false;
   }
 
-  function openModal(manual = false) {
-    if (isStandalone()) return;
+  async function openModal(manual = false) {
+    if (await refreshInstallState({ force: true })) return;
     renderModal();
     modal.classList.add('open');
     modal.dataset.manual = manual ? '1' : '0';
@@ -326,57 +332,125 @@
     }
   }
 
-  function updateVisibility() {
+  function applyInstallVisibility(installed) {
+    installedDetected = !!installed;
+    if (launcher) launcher.hidden = installedDetected;
+    if (installedDetected) modal?.classList.remove('open');
+  }
+
+  async function detectInstalledPWA() {
+    if (isStandalone()) return true;
+
+    // Chromium can query whether this same-scope PWA is installed when the
+    // manifest declares itself in related_applications. This also lets the
+    // browser notice a later uninstall without relying on a stale saved flag.
+    if (typeof navigator.getInstalledRelatedApps === 'function') {
+      try {
+        const apps = await navigator.getInstalledRelatedApps();
+        return Array.isArray(apps) && apps.some(app => app?.platform === 'webapp');
+      } catch (_) {}
+    }
+
+    // On browsers without an installed-app query (notably iOS Safari), the
+    // reliable signal is whether this page is currently running as the
+    // Home-Screen/standalone app. We deliberately do not persist an
+    // "installed" flag because it would remain stale after an uninstall.
+    return false;
+  }
+
+  async function refreshInstallState({ force = false } = {}) {
     ensureUI();
-    const installed = isStandalone();
-    launcher.hidden = installed;
-    if (installed) modal?.classList.remove('open');
+
+    if (isStandalone()) {
+      applyInstallVisibility(true);
+      return true;
+    }
+
+    const now = Date.now();
+    if (!force && installCheckInFlight) return installCheckInFlight;
+    if (!force && now - lastInstallCheckAt < 1200) return installedDetected;
+
+    lastInstallCheckAt = now;
+    installCheckInFlight = (async () => {
+      // Avoid a brief flash of the install button while a supported browser is
+      // checking the device-level installed state.
+      if (typeof navigator.getInstalledRelatedApps === 'function' && launcher) launcher.hidden = true;
+      const installed = await detectInstalledPWA();
+      applyInstallVisibility(installed);
+      return installed;
+    })().finally(() => { installCheckInFlight = null; });
+
+    return installCheckInFlight;
+  }
+
+  function updateVisibility() {
+    void refreshInstallState({ force: true });
   }
 
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
     deferredPrompt = event;
-    updateVisibility();
+    applyInstallVisibility(false);
+    void refreshInstallState({ force: true });
     if (modal?.classList.contains('open')) renderModal();
   });
 
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     clearDismissal();
-    updateVisibility();
+    applyInstallVisibility(true);
+    setTimeout(() => { void refreshInstallState({ force: true }); }, 1500);
   });
 
   try {
     window.matchMedia('(display-mode: standalone)').addEventListener('change', updateVisibility);
   } catch (_) {}
 
-  function maybeAutoShow() {
-    if (autoShown || isStandalone() || recentlyDismissed()) return;
+  async function maybeAutoShow() {
+    if (autoShown || recentlyDismissed()) return;
     if (!homeScreen.classList.contains('active')) return;
     if (window.__TF_STARTUP_OVERLAY__ && !window.__TF_STARTUP_OVERLAY__.dismissed()) return;
+    if (await refreshInstallState()) return;
+
     autoShown = true;
-    setTimeout(() => {
-      if (!isStandalone() && homeScreen.classList.contains('active') && !recentlyDismissed()) openModal(false);
+    setTimeout(async () => {
+      if (!homeScreen.classList.contains('active') || recentlyDismissed()) return;
+      if (await refreshInstallState({ force: true })) return;
+      await openModal(false);
     }, 900);
   }
 
   ensureUI();
-  updateVisibility();
+  void refreshInstallState({ force: true });
 
   // Wait until the existing welcome card has been dismissed so the two guides
   // never stack on top of one another.
   const autoTimer = setInterval(() => {
-    maybeAutoShow();
-    if (autoShown || isStandalone()) clearInterval(autoTimer);
+    void maybeAutoShow();
+    if (autoShown || installedDetected || isStandalone()) clearInterval(autoTimer);
   }, 500);
   setTimeout(() => {
-    maybeAutoShow();
-    if (autoShown || isStandalone()) clearInterval(autoTimer);
+    void maybeAutoShow();
+    if (autoShown || installedDetected || isStandalone()) clearInterval(autoTimer);
   }, 1200);
 
-  // If a user returns to All Apps later, keep the install launcher available.
+  // Re-check while the site is open. On browsers that implement
+  // getInstalledRelatedApps(), uninstalling the PWA makes the Install button
+  // return automatically on the next check. Event-driven checks make this
+  // nearly immediate when the user switches back to the browser.
+  setInterval(() => {
+    if (!document.hidden) void refreshInstallState({ force: true });
+  }, INSTALL_RECHECK_MS);
+  window.addEventListener('focus', () => { void refreshInstallState({ force: true }); });
+  window.addEventListener('pageshow', () => { void refreshInstallState({ force: true }); });
+  window.addEventListener('online', () => { void refreshInstallState({ force: true }); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void refreshInstallState({ force: true });
+  });
+
+  // If a user returns to All Apps later, keep the install launcher state fresh.
   new MutationObserver(() => {
-    updateVisibility();
-    maybeAutoShow();
+    void refreshInstallState({ force: true });
+    void maybeAutoShow();
   }).observe(homeScreen, { attributes: true, attributeFilter: ['class'] });
 })();

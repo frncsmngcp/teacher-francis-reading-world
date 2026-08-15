@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="light">
 <title>Kuwento Tayo with Teacher Francis</title>
 <style>
 :root{--wood:#8b4d18;--wood2:#c77724;--cream:#fff4d9;--ink:#3d2616;--blue:#1267a8;--green:#56a923;--purple:#6b45b8;--shadow:0 8px 24px rgba(38,21,8,.28)}
@@ -308,6 +310,11 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 .stage.compact-ui .story-copy{justify-content:center}
 </style>
   <script src="../shared/pwa-compat.js"></script>
+
+<style id="tf-force-light-scheme">
+:root,html,body{color-scheme:only light!important}
+button,input,select,textarea,option{color-scheme:light!important}
+</style>
 </head>
 <body>
 <div id="app"><main class="stage" id="stage">

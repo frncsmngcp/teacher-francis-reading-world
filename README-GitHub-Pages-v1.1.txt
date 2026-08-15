@@ -26,3 +26,11 @@ Mobile landscape update (v1.5.0): all six learning modules now fit to Safari/Chr
 v1.5.0: Kuwento Tayo mobile touch fixes, bookshelf swipe, responsive story/question text fitting, dual-orientation PWA support, and improved fullscreen/home controls.
 
 v1.5.2: Kuwento Tayo portrait-phone story fitting now measures the real rendered text height (including late-loaded font metrics), preventing the last story lines from being clipped in the shallow 16:9 reader frame.
+v1.5.3: AWAD now prioritizes the bundled reading font instead of device-specific system fallbacks, and the suite/startup/install dialogs center against the actual visible mobile viewport in portrait browsers.
+
+
+v1.5.5: The Install App button and install guide now continuously re-check whether Reading World is already installed. Supported Chromium browsers use same-scope PWA installation detection; installed/standalone sessions hide installation UI immediately, and the UI returns after an uninstall is detected.
+v1.5.4: The PWA and all six modules now explicitly opt out of OS/browser dark-mode color schemes. Native controls and page content stay in the app's designed light presentation even when the device itself uses Dark Mode.
+
+
+v1.5.6: Incremental offline updates. Content-hashed library media is retained in a stable cache across releases, old versioned caches are migrated locally, removed assets are pruned, and only new/changed library assets plus mutable app files are fetched. The app also checks periodically for a newer service worker without interrupting an active lesson.

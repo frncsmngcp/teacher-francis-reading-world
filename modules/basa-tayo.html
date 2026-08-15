@@ -4,6 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#0b7f85">
   <title>Basa Tayo! — Filipino Reading Adventure</title>
   <style>@font-face{font-family:"Andika Basic";src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}</style>
@@ -309,6 +311,11 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 </style>
 
   <script src="../shared/pwa-compat.js"></script>
+
+<style id="tf-force-light-scheme">
+:root,html,body{color-scheme:only light!important}
+button,input,select,textarea,option{color-scheme:light!important}
+</style>
 </head>
 <body>
   <main id="app" class="app-shell" aria-label="Basa Tayo Filipino reading app">

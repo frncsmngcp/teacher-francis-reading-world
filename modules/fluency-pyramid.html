@@ -4,6 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="light">
   <title>Fluency Pyramid with Teacher Francis</title>
   <style>
     @font-face{font-family:Andika;src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}
@@ -445,6 +447,11 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 </style>
 
   <script src="../shared/pwa-compat.js"></script>
+
+<style id="tf-force-light-scheme">
+:root,html,body{color-scheme:only light!important}
+button,input,select,textarea,option{color-scheme:light!important}
+</style>
 </head>
 <body>
 <main id="app" aria-label="Fluency Pyramid reading application">

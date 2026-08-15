@@ -4,6 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="light">
   <meta name="tf-bbb-single-layer-word-fix" content="v4.3">
   <title>Basa, Bata, Basa! with Teacher Francis v6</title>
   <style>
@@ -216,6 +218,11 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 </style>
 
   <script src="../shared/pwa-compat.js"></script>
+
+<style id="tf-force-light-scheme">
+:root,html,body{color-scheme:only light!important}
+button,input,select,textarea,option{color-scheme:light!important}
+</style>
 </head>
 <body>
 <div id="viewport"><main id="stage" aria-label="Basa, Bata, Basa sight-word app">

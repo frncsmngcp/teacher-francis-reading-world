@@ -3,11 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.5.2 Easy Install Assistant</title>
+  <title>Teacher Francis Reading World — PWA v1.5.6 Incremental Offline Updates</title>
   <style>
     :root {
-      color-scheme: dark;
+      color-scheme: only light;
       --stage-ratio: 1.7778958555;
       --focus: #ffe66a;
       --deep: #041d24;
@@ -28,8 +30,8 @@
 
     #suite {
       position: fixed;
-      left: 50%;
-      top: 50%;
+      left: var(--tf-usable-center-x, 50vw);
+      top: var(--tf-usable-center-y, 50vh);
       width: min(var(--tf-usable-width, 100vw), calc(var(--tf-usable-height, 100vh) * var(--stage-ratio)));
       height: min(var(--tf-usable-height, 100vh), calc(var(--tf-usable-width, 100vw) / var(--stage-ratio)));
       aspect-ratio: 1672 / 941;
@@ -207,7 +209,10 @@
 
     #global-reset-dialog {
       position:fixed;
-      inset:0;
+      inset:auto;
+      left:0;top:0;
+      width:var(--tf-usable-width,100vw);
+      height:var(--tf-usable-height,100vh);
       z-index:10050;
       display:none;
       place-items:center;
@@ -769,7 +774,7 @@
   <meta name="mobile-web-app-capable" content="yes">
 
 <style id="tf-startup-overlay-style">
-  #startup-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:clamp(10px,2vw,24px);background:rgba(6,17,29,.18);backdrop-filter:blur(15px) saturate(.88) brightness(.78);-webkit-backdrop-filter:blur(15px) saturate(.88) brightness(.78);overflow:hidden}
+  #startup-overlay{position:fixed;inset:auto;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:9999;display:flex;align-items:center;justify-content:center;padding:clamp(10px,2vw,24px);background:rgba(6,17,29,.18);backdrop-filter:blur(15px) saturate(.88) brightness(.78);-webkit-backdrop-filter:blur(15px) saturate(.88) brightness(.78);overflow:hidden}
   #startup-overlay[hidden]{display:none !important}
   .startup-card{position:relative;width:min(94vw,1120px);aspect-ratio:3/2;max-height:calc(var(--tf-usable-height,94vh) * .94);border-radius:clamp(20px,2.2vw,32px);filter:drop-shadow(0 24px 46px rgba(0,0,0,.36));animation:tfStartupIn .52s cubic-bezier(.2,.9,.25,1);overflow:hidden}
   .startup-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
@@ -784,6 +789,11 @@
   @media (max-aspect-ratio: 4/3){.startup-card{width:min(96vw,960px);max-height:88vh}}
 </style>
   <script src="./shared/pwa-compat.js"></script>
+
+<style id="tf-force-light-scheme">
+:root,html,body{color-scheme:only light!important}
+button,input,select,textarea,option{color-scheme:light!important}
+</style>
 </head>
 <body>
   <main id="suite" aria-label="Teacher Francis Reading World">

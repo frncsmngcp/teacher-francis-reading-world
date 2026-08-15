@@ -13,8 +13,8 @@
     if (!cacheTarget || warmupScheduled) return;
     warmupScheduled = true;
 
-    // Keep first paint and app controls responsive, then download the entire
-    // Reading World library quietly in the background for offline use.
+    // Keep first paint and app controls responsive, then complete the entire Reading World library quietly in the background for offline use.
+    // On updates, unchanged content-hashed media is reused from local storage.
     const run = () => {
       warmupScheduled = false;
       startFullLibraryWarmup();
@@ -36,6 +36,23 @@
       cacheTarget = navigator.serviceWorker.controller || reg.active || reg.waiting;
       scheduleFullLibraryWarmup();
 
+      // Check GitHub Pages for a newer service worker on launch and whenever
+      // the user returns to the app. This does not force-refresh an active
+      // lesson; the new shell is used naturally on the next navigation/reopen.
+      const checkForAppUpdate = async () => {
+        if (!navigator.onLine) return;
+        try {
+          await reg.update();
+          if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } catch (_) {}
+      };
+      setTimeout(checkForAppUpdate, 1200);
+      window.addEventListener('focus', checkForAppUpdate);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForAppUpdate();
+      });
+      setInterval(checkForAppUpdate, 60 * 60 * 1000);
+
       // Ask for persistent storage where the browser supports it so the fully
       // downloaded offline library is less likely to be evicted under pressure.
       try { await navigator.storage?.persist?.(); } catch (_) {}
@@ -44,6 +61,7 @@
       // any missing files automatically when connectivity returns.
       window.addEventListener('online', () => {
         setTimeout(startFullLibraryWarmup, 800);
+        setTimeout(checkForAppUpdate, 1000);
       });
 
       // A newly activated controller should also continue the warmup.
