@@ -294,12 +294,18 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 /* Very small device safety. The text fitter supplies the actual font size; the
    CSS here removes hard minimums that used to force clipping. */
 @media (max-height:560px),(max-width:900px){
-  .story-title{font-size:clamp(10px,1.05vw,18px)}
-  .story-text{font-size:clamp(12px,2.1vw,30px)}
-  .q-text{font-size:clamp(12px,1.8vw,26px)}
-  .choice{font-size:clamp(9px,1.15vw,18px)}
+  .story-title{font-size:clamp(8px,1.05vw,18px)}
+  .story-text{font-size:clamp(8px,2.1vw,30px)}
+  .q-text{font-size:clamp(9px,1.8vw,26px)}
+  .choice{font-size:clamp(8px,1.15vw,18px)}
   .reader-status{font-size:clamp(6px,.62vw,10px) !important}
 }
+/* The story body must keep its natural content height while fitting.  Without
+   this, flexbox can shrink the text box and hide its last lines before the JS
+   fitter notices. This is especially visible in portrait phone letterboxing. */
+.story-title{flex:0 0 auto}
+.story-text{flex:0 0 auto;min-height:auto;max-height:none}
+.stage.compact-ui .story-copy{justify-content:center}
 </style>
   <script src="../shared/pwa-compat.js"></script>
 </head>
@@ -417,25 +423,41 @@ function storyTextMarkup(text){
  }).join('');
 }
 function fitStoryText(){
- const stage=$('#stage'),copy=document.querySelector('.story-copy'),text=document.querySelector('.story-text'),title=document.querySelector('.story-title');
+ const stage=$('#stage'),page=$('#rightPage'),copy=document.querySelector('.story-copy'),text=document.querySelector('.story-text'),title=document.querySelector('.story-title');
  if(!stage||!copy||!text)return;updateCompactUI();
  const sw=stage.clientWidth||window.innerWidth,sh=stage.clientHeight||window.innerHeight;
- // Height matters as much as width on phone landscape / portrait-letterboxed views.
- let size=Math.min(54,Math.max(16,Math.min(sw*.0305,sh*.057)));
- let minSize=Math.max(11,Math.min(sw*.014,sh*.027));
- let titleSize=Math.min(24,Math.max(10,Math.min(sw*.014,sh*.030)));
+ const tiny=sh<330||sw<590;
+ // Portrait phones display the 16:9 reader in a shallow letterbox. Start smaller
+ // there, then fit against the real rendered height of every line.
+ let size=Math.min(54,Math.max(tiny?11:14,Math.min(sw*.0305,sh*.057)));
+ let minSize=tiny?7.25:Math.max(9,Math.min(sw*.014,sh*.027));
+ let titleSize=Math.min(24,Math.max(tiny?7.5:9,Math.min(sw*.014,sh*.030)));
  if(title)title.style.fontSize=titleSize+'px';
  text.style.fontSize=size+'px';
- // Force layout and compare the complete copy box, not only the text node.
- let guard=120;
- const tooLarge=()=>copy.scrollHeight>copy.clientHeight+1||text.scrollWidth>copy.clientWidth+1;
- while(guard--&&tooLarge()&&size>minSize){size-=.45;text.style.fontSize=size+'px';}
- // Long titles can still steal room on tiny screens; reduce them second.
- guard=50;
- while(guard--&&tooLarge()&&title&&titleSize>8.5){titleSize-=.35;title.style.fontSize=titleSize+'px';}
- // Final safety: allow the body to go below the preferred floor rather than clip.
- guard=50;
- while(guard--&&tooLarge()&&size>8.5){size-=.35;text.style.fontSize=size+'px';}
+ // Do not let flexbox silently crop the body: its natural scrollHeight must be
+ // visible to this test. Include both the text node and the full story-copy box.
+ const tooLarge=()=>{
+   const textClipped=text.scrollHeight>text.clientHeight+.75 || text.scrollWidth>text.clientWidth+.75;
+   const copyClipped=copy.scrollHeight>copy.clientHeight+.75 || copy.scrollWidth>copy.clientWidth+.75;
+   const pageClipped=page&&(page.scrollHeight>page.clientHeight+1);
+   return textClipped||copyClipped||pageClipped;
+ };
+ let guard=160;
+ while(guard--&&tooLarge()&&size>minSize){size-=.35;text.style.fontSize=size+'px';}
+ // Long titles can steal a surprising amount of vertical room on a narrow page.
+ guard=70;
+ while(guard--&&tooLarge()&&title&&titleSize>(tiny?6.4:7.5)){titleSize-=.25;title.style.fontSize=titleSize+'px';}
+ // Absolute safety floor: complete text is more important than preserving size.
+ guard=100;
+ while(guard--&&tooLarge()&&size>6.2){size-=.25;text.style.fontSize=size+'px';}
+ // If font metrics arrived late, run once more after this paint.
+ fitStoryText._last={size,titleSize};
+}
+function refitStoryAfterFonts(){
+ if(state.screen!=='reader'||state.mode!=='story')return;
+ requestAnimationFrame(fitStoryText);
+ setTimeout(fitStoryText,60);
+ setTimeout(fitStoryText,220);
 }
 
 function clearFocusToken(){document.querySelectorAll('.story-text .focus-active').forEach(x=>x.classList.remove('focus-active'))}
@@ -457,7 +479,7 @@ function bindReaderFocusControls(){
 function renderStory(){const b=state.book;const sceneSrc=SCENE_IMAGES[state.lang]?.[String(b.n)]?.[state.scene]||null;const art=sceneSrc?`<img class="scene-image" src="${sceneSrc}" alt="${b.title} scene ${state.scene+1}">`:sceneCover(b);const note=sceneSrc?'':`<div class="art-note">Story illustration slot — ready for AI scene art</div>`;$('#leftPage').innerHTML=`<div class="scene-art"><div class="scene-tag">Scene ${state.scene+1}</div>${art}${note}</div>`;
  const txt=b.scenes[state.scene];const focusClass=settings.readingFocus?'focus-enabled':'';const unitClass=settings.focusUnit==='syllable'?'focus-syllable':'focus-word';
  $('#rightPage').innerHTML=`<div class="story-copy"><div class="story-title">${b.title}</div><div id="storyText" class="story-text ${focusClass} ${unitClass}">${storyTextMarkup(txt)}</div></div><div class="reading-focus-bar" aria-label="Reading focus controls"><button id="readerFocusToggle" class="focus-mini ${settings.readingFocus?'on':''}" aria-pressed="${settings.readingFocus}">${settings.readingFocus?'Focus ON':'Focus OFF'}</button><button class="focus-mini ${settings.focusUnit==='word'?'unit-active':''}" data-reader-unit="word">Word</button><button class="focus-mini ${settings.focusUnit==='syllable'?'unit-active':''}" data-reader-unit="syllable">Syllable</button></div>`;
- bindReaderFocusControls();bindStoryFocus();requestAnimationFrame(fitStoryText);$('#prevBtn').disabled=state.scene===0;$('#nextBtn').disabled=false;}
+ bindReaderFocusControls();bindStoryFocus();refitStoryAfterFonts();$('#prevBtn').disabled=state.scene===0;$('#nextBtn').disabled=false;}
 function fitQuestionText(){
  const stage=$('#stage'),wrap=document.querySelector('.question-wrap'),q=document.querySelector('.q-text'),choices=[...document.querySelectorAll('.choice')],num=document.querySelector('.q-number');if(!stage||!wrap||!q)return;updateCompactUI();
  const sw=stage.clientWidth||innerWidth,sh=stage.clientHeight||innerHeight;let qSize=Math.min(36,Math.max(12,Math.min(sw*.022,sh*.046)));let cSize=Math.min(22,Math.max(9,Math.min(sw*.0145,sh*.031)));let nSize=Math.min(18,Math.max(8,Math.min(sw*.0105,sh*.023)));
@@ -609,6 +631,7 @@ let fitTimer;window.addEventListener('resize',()=>{clearTimeout(fitTimer);fitTim
 document.addEventListener('keydown',e=>{if(e.key==='f'||e.key==='F')toggleFullscreen();if(e.key==='Escape')$$('.modal.open').forEach(m=>m.classList.remove('open'));if(state.screen==='shelf'){if(e.key==='ArrowLeft'){state.shelfPage--;renderShelf()}if(e.key==='ArrowRight'){state.shelfPage++;renderShelf()}}else if(state.screen==='reader'){if(e.key==='ArrowLeft')prevPage();if(e.key==='ArrowRight')nextPage();if(e.key==='Enter')readCurrent()}});
 
 window.addEventListener('resize',()=>requestAnimationFrame(fitReaderStatus));window.addEventListener('tfviewportchange',()=>requestAnimationFrame(()=>{fitReaderStatus();if(state.screen==='reader'){if(state.mode==='story')fitStoryText();else fitQuestionText()}}));
+if(document.fonts?.ready)document.fonts.ready.then(()=>{if(state.screen==='reader'){if(state.mode==='story')refitStoryAfterFonts();else fitQuestionText()}});
 </script>
 
 
