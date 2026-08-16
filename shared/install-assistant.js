@@ -187,17 +187,17 @@
     style.textContent = `
       #tf-install-launcher{
         position:fixed;left:1.45%;top:2.0%;z-index:9000;
-        min-width:10.6%;height:6.2%;padding:0 1.15%;
-        display:flex;align-items:center;justify-content:center;gap:.48cqw;
-        border:.16cqw solid rgba(255,238,165,.92);border-radius:999px;
+        width:auto;min-width:var(--tf-launcher-min-width,86px);height:var(--tf-launcher-height,34px);min-height:0;padding:0 var(--tf-launcher-pad-x,6px);
+        display:flex;align-items:center;justify-content:center;gap:var(--tf-launcher-gap,4px);
+        border:var(--tf-launcher-border,1.5px) solid rgba(255,238,165,.92);border-radius:999px;
         color:#fff7d4;background:linear-gradient(180deg,rgba(82,45,126,.96),rgba(50,22,91,.97));
-        box-shadow:0 .42cqw 0 rgba(25,9,50,.75),0 .7cqw 1.3cqw rgba(0,0,0,.3),inset 0 .1cqw .16cqw rgba(255,255,255,.38);
-        font:900 clamp(10px,1.14cqw,19px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;
-        letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:none;pointer-events:auto!important;-webkit-touch-callout:none;
+        box-shadow:0 var(--tf-launcher-shadow-y,3px) 0 rgba(25,9,50,.75),0 var(--tf-launcher-shadow-soft-y,5px) var(--tf-launcher-shadow-blur,9px) rgba(0,0,0,.3),inset 0 1px 2px rgba(255,255,255,.38);
+        font:900 var(--tf-launcher-font-size,10px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;
+        letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;pointer-events:auto!important;-webkit-touch-callout:none;
         -webkit-user-select:none;user-select:none;transform:translateZ(0);-webkit-transform:translateZ(0);
         transition:transform .16s ease,filter .16s ease,opacity .18s ease;
       }
-      #tf-install-launcher::before{content:"↓";display:grid;place-items:center;width:1.85cqw;height:1.85cqw;min-width:16px;min-height:16px;border-radius:50%;background:#ffd85b;color:#532372;font-weight:1000;box-shadow:inset 0 -.12cqw .2cqw rgba(134,81,0,.25)}
+      #tf-install-launcher::before{content:"↓";display:grid;place-items:center;width:var(--tf-launcher-icon,16px);height:var(--tf-launcher-icon,16px);min-width:var(--tf-launcher-icon,16px);min-height:var(--tf-launcher-icon,16px);border-radius:50%;background:#ffd85b;color:#532372;font-weight:1000;box-shadow:inset 0 -1px 2px rgba(134,81,0,.25)}
       #tf-install-launcher:hover,#tf-install-launcher:focus-visible{outline:none;filter:brightness(1.13);transform:translateY(-2%)}
       #tf-install-launcher:active{transform:translateY(1%) scale(.98)}
       #tf-install-launcher[hidden]{display:none!important}
@@ -225,8 +225,9 @@
       .tf-install-success{text-align:center;padding:18px 8px 5px;color:#365b28;font:850 18px/1.4 system-ui}
       @media(max-width:560px){.tf-install-card{border-radius:24px;padding:24px 18px 20px}.tf-install-actions{grid-template-columns:1fr}.tf-install-actions #tf-install-action{grid-row:1}.tf-install-icon{width:64px;height:64px;font-size:32px}.tf-install-close{width:38px;height:38px}.tf-install-steps li{font-size:14px}}
       @media(max-height:600px) and (orientation:landscape){
-        #tf-install-launcher{width:auto;min-width:126px;height:48px;min-height:48px;padding:0 16px;font-size:12px;border-width:2px;gap:7px}
-        #tf-install-launcher::before{width:24px;height:24px;min-width:24px;min-height:24px}
+        /* Keep the visual button at the same proportional size as the original
+           in-stage launcher. Its invisible hit area stays generous, so mobile
+           landscape remains easy to tap without making the artwork look huge. */
         .tf-install-card{width:min(calc(var(--tf-usable-width,100vw) - 32px),760px);max-height:calc(var(--tf-usable-height,100vh) - 32px);padding:18px 24px}
         .tf-install-icon{width:48px;height:48px;margin-bottom:6px;font-size:25px;border-radius:16px}.tf-install-title{font-size:25px}.tf-install-body{font-size:13px;margin:8px auto}.tf-install-steps{grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.tf-install-steps li{grid-template-columns:26px 1fr;padding:8px;font-size:11px}.tf-install-steps li::before{width:24px;height:24px}.tf-install-actions{margin-top:10px}.tf-install-actions button{min-height:44px}.tf-install-tip{font-size:11px;padding:7px}
       }
@@ -342,8 +343,31 @@
       // Keep the install control away from Safari/Chrome's edge gesture and
       // toolbar hit regions. Because the launcher is portaled to <body>, it is
       // no longer hit-tested through the transformed #suite ancestor.
-      const insetX = landscape ? 26 : Math.max(14, rect.width * 0.0145);
-      const insetY = landscape ? 20 : Math.max(12, rect.height * 0.020);
+      const insetX = landscape ? Math.max(14, rect.width * 0.0145) : Math.max(12, rect.width * 0.0145);
+      const insetY = landscape ? Math.max(10, rect.height * 0.020) : Math.max(10, rect.height * 0.020);
+
+      // The launcher lives outside #suite for reliable Safari hit testing, so
+      // container/percentage units would otherwise size it against the browser
+      // viewport and make it look oversized. Recreate the original in-suite
+      // proportions from the suite's *rendered* rectangle instead.
+      const fontSize = Math.max(10, Math.min(19, rect.width * 0.0114));
+      const iconSize = Math.max(16, Math.min(31, rect.width * 0.0185));
+      const padX = Math.max(5, Math.min(19, rect.width * 0.0115));
+      const gap = Math.max(4, Math.min(8, rect.width * 0.0048));
+      const minWidth = Math.max(78, rect.width * 0.106);
+      const height = Math.max(30, Math.min(58, rect.height * 0.062));
+      const border = Math.max(1.25, Math.min(2.7, rect.width * 0.0016));
+      launcher.style.setProperty('--tf-launcher-font-size', `${fontSize.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-icon', `${iconSize.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-pad-x', `${padX.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-gap', `${gap.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-min-width', `${minWidth.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-height', `${height.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-border', `${border.toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-shadow-y', `${Math.max(2, rect.width * 0.0042).toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-shadow-soft-y', `${Math.max(3, rect.width * 0.007).toFixed(2)}px`);
+      launcher.style.setProperty('--tf-launcher-shadow-blur', `${Math.max(6, rect.width * 0.013).toFixed(2)}px`);
+
       launcher.style.left = `calc(${Math.round(rect.left + insetX)}px + env(safe-area-inset-left))`;
       launcher.style.top = `calc(${Math.round(rect.top + insetY)}px + env(safe-area-inset-top))`;
     });
