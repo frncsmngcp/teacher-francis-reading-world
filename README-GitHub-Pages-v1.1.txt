@@ -37,3 +37,4 @@ v1.5.6: Incremental offline updates. Content-hashed library media is retained in
 
 v1.5.7: The All Apps control in every module can now be dragged with touch, pen, or mouse. Its normalized position is shared across modules and remembered between sessions, while taps/clicks still return to the Reading World home screen.
 v1.5.8: Motion and ambient visual effects now stay enabled even when the device has Reduce Motion turned on. AWAD and the Reading World home ambient layers also avoid mix-blend-mode dependency and use mobile-compositor-friendly layering so glitters, light rays, fireflies, orbs, and sheen effects remain visible more consistently.
+v1.5.9: iPhone/iPad installation now includes an on-screen three-step coach with persistent animated pointers for Safari’s Share / More controls, plus clear Add to Home Screen and Add instructions. Apple’s required system confirmation remains user-controlled.

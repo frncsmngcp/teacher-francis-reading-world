@@ -13,6 +13,8 @@
   let installedDetected = false;
   let installCheckInFlight = null;
   let lastInstallCheckAt = 0;
+  let iosCoach = null;
+  let iosCoachOpen = false;
   const INSTALL_RECHECK_MS = 10000;
 
   const isStandalone = () => {
@@ -30,6 +32,7 @@
   const platform = navigator.platform || '';
   const maxTouchPoints = navigator.maxTouchPoints || 0;
   const isIOS = /iPad|iPhone|iPod/i.test(ua) || (platform === 'MacIntel' && maxTouchPoints > 1);
+  const isIPad = /iPad/i.test(ua) || (platform === 'MacIntel' && maxTouchPoints > 1);
   const isAndroid = /Android/i.test(ua);
   const isEdge = /Edg\//i.test(ua);
   const isChrome = /Chrome\//i.test(ua) && !isEdge;
@@ -72,17 +75,18 @@
 
     if (isIOS) {
       return {
-        eyebrow: 'IPHONE / IPAD',
-        title: 'Add Reading World to Home Screen',
-        body: 'Apple requires one short confirmation from you. After that, Reading World opens like an app and the downloaded library remains available for offline reading.',
+        eyebrow: 'IPHONE / IPAD • GUIDED INSTALL',
+        title: 'Put Reading World on your Home Screen',
+        body: 'I’ll keep a visual guide on screen and point you toward the Safari controls. Apple still requires you to make the final taps yourself, but the guide will stay with you through the process.',
         steps: [
-          'Tap the Share button (the square with the ↑ arrow).',
-          'Choose “Add to Home Screen”. If you do not see it, scroll down in the Share menu.',
-          'Tap “Add”. Then open Reading World from the new Home Screen icon.'
+          'Tap “Show me where” below.',
+          'Tap Safari’s Share button (↑), or tap ••• More and then Share.',
+          'Choose “Add to Home Screen”, then tap “Add”.'
         ],
-        tip: isSafari ? 'You are already in Safari — perfect.' : 'If “Add to Home Screen” is not offered in this browser, open this same page in Safari and use Share → Add to Home Screen.',
+        tip: isSafari ? 'Safari detected. The guide adapts for iPhone and iPad and shows both common toolbar locations.' : 'If this browser does not show “Add to Home Screen”, open this same page in Safari and use the guided steps there.',
         native: false,
-        action: 'Got it'
+        iosGuide: true,
+        action: 'Show me where'
       };
     }
 
@@ -218,8 +222,104 @@
       .tf-install-success{text-align:center;padding:18px 8px 5px;color:#365b28;font:850 18px/1.4 system-ui}
       @media(max-width:560px){.tf-install-card{border-radius:24px;padding:24px 18px 20px}.tf-install-actions{grid-template-columns:1fr}.tf-install-actions #tf-install-action{grid-row:1}.tf-install-icon{width:64px;height:64px;font-size:32px}.tf-install-close{width:38px;height:38px}.tf-install-steps li{font-size:14px}}
       @media(max-height:520px) and (orientation:landscape){.tf-install-card{width:min(90vw,760px);max-height:90vh;padding:18px 24px}.tf-install-icon{width:48px;height:48px;margin-bottom:6px;font-size:25px;border-radius:16px}.tf-install-title{font-size:25px}.tf-install-body{font-size:13px;margin:8px auto}.tf-install-steps{grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.tf-install-steps li{grid-template-columns:26px 1fr;padding:8px;font-size:11px}.tf-install-steps li::before{width:24px;height:24px}.tf-install-actions{margin-top:10px}.tf-install-actions button{min-height:42px}.tf-install-tip{font-size:11px;padding:7px}}
+
+      #tf-ios-install-coach{position:fixed;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:13050;display:none;pointer-events:none;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+      #tf-ios-install-coach.open{display:block}
+      .tf-ios-coach-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,20,35,.28),rgba(7,20,35,.58));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+      .tf-ios-coach-card{pointer-events:auto;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(88vw,430px);max-height:70vh;overflow:auto;padding:22px 20px 18px;border:2px solid rgba(255,235,142,.96);border-radius:26px;background:linear-gradient(165deg,rgba(83,42,132,.98),rgba(44,20,86,.98));box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.28);text-align:center;-webkit-overflow-scrolling:touch}
+      .tf-ios-coach-close{position:absolute;right:10px;top:10px;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font:900 23px/1 system-ui;cursor:pointer}
+      .tf-ios-coach-kicker{margin:1px 42px 8px;color:#ffe590;font:950 11px/1.2 system-ui;letter-spacing:.12em}
+      .tf-ios-coach-title{margin:0;color:#fff8dc;font:950 clamp(24px,6vw,34px)/1.05 system-ui}
+      .tf-ios-coach-intro{margin:10px auto 14px;max-width:370px;color:#efe7ff;font:700 14px/1.4 system-ui}
+      .tf-ios-coach-steps{display:grid;gap:9px;text-align:left}
+      .tf-ios-coach-step{display:grid;grid-template-columns:34px 44px 1fr;align-items:center;gap:9px;padding:9px 10px;border-radius:15px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.14);color:#fff;font:780 13px/1.3 system-ui}
+      .tf-ios-coach-number{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#ffd759;color:#4e257a;font-weight:1000;box-shadow:0 3px 0 rgba(50,22,77,.72)}
+      .tf-ios-coach-symbol{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#fff;color:#1768d2;font:950 24px/1 system-ui;box-shadow:0 5px 14px rgba(0,0,0,.2)}
+      .tf-ios-coach-symbol.home{color:#66339b;font-size:20px}.tf-ios-coach-symbol.add{color:#2f7f35;font-size:16px}
+      .tf-ios-coach-note{margin:12px 0 0;padding:9px 10px;border-radius:13px;background:rgba(16,144,214,.2);border:1px solid rgba(143,218,255,.45);color:#e7f8ff;font:720 12px/1.35 system-ui}
+      .tf-ios-coach-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin-top:14px}
+      .tf-ios-coach-actions button{min-height:44px;border-radius:14px;padding:9px 12px;font:900 13px/1.1 system-ui;cursor:pointer}
+      #tf-ios-coach-close-button{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.12);color:#fff}
+      #tf-ios-coach-reopen{border:2px solid #ffe28a;background:#fff4c4;color:#59307c;box-shadow:0 4px 0 #d3ad42}
+      .tf-ios-target{position:absolute;z-index:2;display:flex;align-items:center;gap:8px;max-width:min(72vw,320px);padding:8px 11px;border-radius:999px;background:rgba(255,250,222,.97);border:2px solid #ffd857;color:#4d2a72;font:950 12px/1.15 system-ui;box-shadow:0 0 0 0 rgba(255,216,87,.7),0 8px 22px rgba(0,0,0,.32);animation:tfIOSCoachPulse 1.05s ease-in-out infinite;pointer-events:none}
+      .tf-ios-target::before{content:"↑";display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#1671dd;color:#fff;font:1000 20px/1 system-ui;box-shadow:0 3px 0 #0b4896}
+      .tf-ios-target-top{right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top))}
+      .tf-ios-target-bottom{right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom))}
+      .tf-ios-target-bottom::before{content:"•••";font-size:15px;letter-spacing:-1px}
+      .tf-ios-target .tf-ios-arrow{position:absolute;width:0;height:0;border-style:solid;filter:drop-shadow(0 2px 2px rgba(0,0,0,.22))}
+      .tf-ios-target-top .tf-ios-arrow{right:17px;top:-16px;border-width:0 9px 16px 9px;border-color:transparent transparent #ffd857 transparent}
+      .tf-ios-target-bottom .tf-ios-arrow{right:17px;bottom:-16px;border-width:16px 9px 0 9px;border-color:#ffd857 transparent transparent transparent}
+      #tf-ios-install-coach.ipad .tf-ios-target-bottom{display:none}
+      #tf-ios-install-coach.ipad .tf-ios-target-top{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right))}
+      #tf-ios-install-coach.iphone .tf-ios-target-top{opacity:.58;transform:scale(.9);transform-origin:top right}
+      @keyframes tfIOSCoachPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,216,87,.74),0 8px 22px rgba(0,0,0,.32);transform:translateY(0)}50%{box-shadow:0 0 0 12px rgba(255,216,87,0),0 10px 26px rgba(0,0,0,.36);transform:translateY(-2px)}}
+      @media(max-width:560px){.tf-ios-coach-card{width:min(89vw,410px);padding:20px 15px 16px}.tf-ios-coach-step{grid-template-columns:30px 40px 1fr;gap:7px;font-size:12px}.tf-ios-coach-symbol{width:38px;height:38px}.tf-ios-target{font-size:11px;max-width:68vw;padding:7px 9px}.tf-ios-target::before{width:29px;height:29px}}
+      @media(max-height:520px) and (orientation:landscape){.tf-ios-coach-card{width:min(70vw,520px);max-height:82vh;top:50%;padding:15px}.tf-ios-coach-title{font-size:24px}.tf-ios-coach-intro{font-size:11px;margin:6px auto}.tf-ios-coach-steps{grid-template-columns:repeat(3,1fr);gap:6px}.tf-ios-coach-step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:7px;font-size:10px}.tf-ios-coach-number{width:24px;height:24px}.tf-ios-coach-symbol{width:34px;height:34px}.tf-ios-coach-note{font-size:10px;margin-top:7px}.tf-ios-coach-actions{margin-top:8px}.tf-ios-target{font-size:10px}}
     `;
     document.head.appendChild(style);
+  }
+
+  function ensureIOSCoach() {
+    if (iosCoach) return iosCoach;
+    injectStyle();
+    iosCoach = document.createElement('div');
+    iosCoach.id = 'tf-ios-install-coach';
+    iosCoach.className = isIPad ? 'ipad' : 'iphone';
+    iosCoach.setAttribute('role', 'dialog');
+    iosCoach.setAttribute('aria-modal', 'true');
+    iosCoach.setAttribute('aria-labelledby', 'tf-ios-coach-title');
+    iosCoach.innerHTML = `
+      <div class="tf-ios-coach-shade" aria-hidden="true"></div>
+      <div class="tf-ios-target tf-ios-target-top" aria-hidden="true"><span class="tf-ios-arrow"></span><span>${isIPad ? 'Tap Safari’s ↑ Share button' : 'If your toolbar is at the top: tap ↑ Share'}</span></div>
+      <div class="tf-ios-target tf-ios-target-bottom" aria-hidden="true"><span class="tf-ios-arrow"></span><span>Tap ••• More or ↑ Share</span></div>
+      <section class="tf-ios-coach-card">
+        <button class="tf-ios-coach-close" type="button" aria-label="Close iPhone install guide">×</button>
+        <div class="tf-ios-coach-kicker">IPHONE / IPAD • KEEP THIS OPEN</div>
+        <h2 class="tf-ios-coach-title" id="tf-ios-coach-title">Just 3 taps to install</h2>
+        <p class="tf-ios-coach-intro">Use Safari’s toolbar while this guide stays on screen. The glowing labels point to the common Share / More button locations.</p>
+        <div class="tf-ios-coach-steps">
+          <div class="tf-ios-coach-step"><span class="tf-ios-coach-number">1</span><span class="tf-ios-coach-symbol">↑</span><span><strong>Tap Share.</strong> If you see <strong>••• More</strong> instead, tap it and choose <strong>Share</strong>.</span></div>
+          <div class="tf-ios-coach-step"><span class="tf-ios-coach-number">2</span><span class="tf-ios-coach-symbol home">⌂＋</span><span>In Apple’s Share menu, scroll if needed and tap <strong>Add to Home Screen</strong>.</span></div>
+          <div class="tf-ios-coach-step"><span class="tf-ios-coach-number">3</span><span class="tf-ios-coach-symbol add">ADD</span><span>On the final screen, tap <strong>Add</strong>. Reading World will appear on the Home Screen.</span></div>
+        </div>
+        <p class="tf-ios-coach-note">Apple keeps the Share and Add buttons under your control, so Reading World cannot press them for you. This guide stays visible until you close it.</p>
+        <div class="tf-ios-coach-actions">
+          <button id="tf-ios-coach-close-button" type="button">Close guide</button>
+          <button id="tf-ios-coach-reopen" type="button">Show pointers again</button>
+        </div>
+      </section>`;
+    document.body.appendChild(iosCoach);
+    iosCoach.querySelector('.tf-ios-coach-close').addEventListener('click', () => stopIOSCoach(true));
+    iosCoach.querySelector('#tf-ios-coach-close-button').addEventListener('click', () => stopIOSCoach(true));
+    iosCoach.querySelector('#tf-ios-coach-reopen').addEventListener('click', () => {
+      const targets = iosCoach.querySelectorAll('.tf-ios-target');
+      targets.forEach(target => {
+        target.style.animation = 'none';
+        void target.offsetWidth;
+        target.style.animation = '';
+      });
+    });
+    return iosCoach;
+  }
+
+  function startIOSCoach() {
+    if (!isIOS) return;
+    ensureIOSCoach();
+    modal?.classList.remove('open');
+    iosCoachOpen = true;
+    iosCoach.classList.add('open');
+    try { window.tfApplySafeViewport?.(); } catch (_) {}
+    setTimeout(() => {
+      try { iosCoach.querySelector('.tf-ios-coach-card')?.focus?.({ preventScroll: true }); } catch (_) {}
+    }, 30);
+  }
+
+  function stopIOSCoach(remember = false) {
+    if (!iosCoach) return;
+    iosCoachOpen = false;
+    iosCoach.classList.remove('open');
+    if (remember) rememberDismissal();
+    try { launcher?.focus({ preventScroll: true }); } catch (_) {}
   }
 
   function ensureUI() {
@@ -286,6 +386,7 @@
     const action = modal.querySelector('#tf-install-action');
     action.textContent = copy.action;
     action.dataset.native = copy.native ? '1' : '0';
+    action.dataset.iosGuide = copy.iosGuide ? '1' : '0';
     action.disabled = false;
   }
 
@@ -306,6 +407,10 @@
 
   async function handlePrimaryAction() {
     const action = modal.querySelector('#tf-install-action');
+    if (isIOS && action.dataset.iosGuide === '1' && !deferredPrompt) {
+      startIOSCoach();
+      return;
+    }
     if (!deferredPrompt || action.dataset.native !== '1') {
       closeModal(true);
       return;
@@ -335,7 +440,10 @@
   function applyInstallVisibility(installed) {
     installedDetected = !!installed;
     if (launcher) launcher.hidden = installedDetected;
-    if (installedDetected) modal?.classList.remove('open');
+    if (installedDetected) {
+      modal?.classList.remove('open');
+      if (iosCoachOpen) stopIOSCoach(false);
+    }
   }
 
   async function detectInstalledPWA() {
@@ -446,6 +554,18 @@
   window.addEventListener('online', () => { void refreshInstallState({ force: true }); });
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) void refreshInstallState({ force: true });
+  });
+  window.addEventListener('resize', () => {
+    if (iosCoachOpen) { try { window.tfApplySafeViewport?.(); } catch (_) {} }
+  });
+  window.addEventListener('orientationchange', () => {
+    if (iosCoachOpen) setTimeout(() => { try { window.tfApplySafeViewport?.(); } catch (_) {} }, 80);
+  });
+  window.addEventListener('tfviewportchange', () => {
+    if (iosCoachOpen && iosCoach) {
+      iosCoach.style.width = 'var(--tf-usable-width,100vw)';
+      iosCoach.style.height = 'var(--tf-usable-height,100vh)';
+    }
   });
 
   // If a user returns to All Apps later, keep the install launcher state fresh.
