@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.5.6 Incremental Offline Updates</title>
+  <title>Teacher Francis Reading World — PWA v1.5.8 Persistent Motion Effects</title>
   <style>
     :root {
       color-scheme: only light;
@@ -421,14 +421,7 @@
       to { transform: translateX(115%); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .001ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-      }
-      .screen { transition: none; }
-    }
+    /* Full-motion classroom mode: device Reduce Motion does not disable app animation. */
   </style>
 
   <!-- TF_HOME_FOREST_MUSIC_STYLE_START -->
@@ -611,7 +604,10 @@
     z-index: 1;
     pointer-events: none;
     overflow: hidden;
-    mix-blend-mode: screen;
+    mix-blend-mode: normal;
+    isolation: isolate;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
   #home-vfx .orb,
   #home-vfx .firefly,
@@ -620,6 +616,8 @@
     position: absolute;
     pointer-events: none;
     will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
   #home-vfx .orb {
     width: var(--size);

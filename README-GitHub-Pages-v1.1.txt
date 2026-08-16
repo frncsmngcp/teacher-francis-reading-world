@@ -34,3 +34,6 @@ v1.5.4: The PWA and all six modules now explicitly opt out of OS/browser dark-mo
 
 
 v1.5.6: Incremental offline updates. Content-hashed library media is retained in a stable cache across releases, old versioned caches are migrated locally, removed assets are pruned, and only new/changed library assets plus mutable app files are fetched. The app also checks periodically for a newer service worker without interrupting an active lesson.
+
+v1.5.7: The All Apps control in every module can now be dragged with touch, pen, or mouse. Its normalized position is shared across modules and remembered between sessions, while taps/clicks still return to the Reading World home screen.
+v1.5.8: Motion and ambient visual effects now stay enabled even when the device has Reduce Motion turned on. AWAD and the Reading World home ambient layers also avoid mix-blend-mode dependency and use mobile-compositor-friendly layering so glitters, light rays, fireflies, orbs, and sheen effects remain visible more consistently.

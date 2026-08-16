@@ -54,7 +54,7 @@
     .celebration{position:absolute;inset:0;z-index:40;display:none;place-items:center;background:rgba(27,45,83,.48);overflow:hidden}.celebration.open{display:grid}.celebrate-card{position:relative;width:660px;min-height:720px;padding:30px;border-radius:64px;border:13px solid white;background:linear-gradient(#fff,#fff0b3);box-shadow:0 30px 90px rgba(33,34,72,.55);display:flex;flex-direction:column;align-items:center;text-align:center;animation:pop .55s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{from{transform:scale(.2) rotate(-9deg);opacity:0}}.celebrate-card.spin{animation:spinPop .75s cubic-bezier(.2,1.45,.4,1)}@keyframes spinPop{from{transform:scale(.15) rotate(-260deg);opacity:0}}.celebrate-card.bounce{animation:bouncePop .8s cubic-bezier(.2,1.5,.4,1)}@keyframes bouncePop{0%{transform:translateY(-500px) scale(.65)}65%{transform:translateY(35px) scale(1.06)}100%{transform:none}}
     .celebrate-card h2{font-size:63px;margin:12px 0 2px;color:#ed4f78}.celebrate-card p{font-size:25px;font-weight:900;margin:0 0 12px}.reward-medallion{width:330px;height:330px;border-radius:50%;background:radial-gradient(circle,#fff,#d8f3ff);border:12px solid white;box-shadow:var(--shadow);display:grid;place-items:center;animation:aura 1.2s ease-in-out infinite}@keyframes aura{50%{box-shadow:0 0 0 18px rgba(255,211,56,.32),0 0 80px 30px rgba(255,117,197,.5)}}.reward-medallion .rare-sprite{width:300px;height:300px}.reward-name{font-size:32px;font-weight:1000;color:#164d87;margin-top:12px}.continue{margin-top:17px;padding:15px 42px;border:7px solid white;border-radius:25px;background:#61ca68;color:white;font-size:25px;font-weight:1000;box-shadow:0 7px 0 #328e42}.confetti{position:absolute;top:-60px;left:var(--l);width:19px;height:35px;border-radius:6px;background:var(--c);animation:fall var(--d) linear infinite;transform:rotate(var(--r))}@keyframes fall{to{transform:translateY(1120px) rotate(800deg)}}
     .toast{position:absolute;left:50%;bottom:180px;z-index:60;max-width:820px;transform:translateX(-50%) translateY(24px);padding:15px 28px;border-radius:23px;background:#173d67;color:white;font-size:22px;line-height:1.15;text-align:center;font-weight:1000;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,transform .2s;white-space:normal}.toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
-    @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+    /* Full-motion classroom mode: device Reduce Motion does not disable app animation. */
   </style>
 
 <style id="tf-unified-dialog-style">
@@ -416,9 +416,11 @@ button,input,select,textarea,option{color-scheme:light!important}
     color: #fff !important;
     font: 900 13px/1 system-ui,-apple-system,"Segoe UI",sans-serif !important;
     letter-spacing: .035em !important;
-    cursor: pointer !important;
+    cursor: grab !important;
     user-select: none !important;
     -webkit-tap-highlight-color: transparent !important;
+    touch-action: none !important;
+    -webkit-user-drag: none !important;
     opacity: .94 !important;
     overflow: hidden !important;
     transition: transform .16s ease, opacity .16s ease, box-shadow .16s ease !important;
@@ -463,6 +465,14 @@ button,input,select,textarea,option{color-scheme:light!important}
     font: inherit !important;
     letter-spacing: inherit !important;
   }
+
+  #teacher-francis-suite-home[data-tf-dragging="true"] {
+    cursor: grabbing !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    box-shadow: 0 8px 22px rgba(0,25,35,.42), inset 0 1px 0 rgba(255,255,255,.36) !important;
+  }
   @keyframes tfSuiteSheen { from{left:-65%} to{left:130%} }
   @media (max-width: 760px), (max-height: 560px) {
     #teacher-francis-suite-home { min-width:42px !important; width:42px !important; padding:0 !important; }
@@ -475,11 +485,157 @@ button,input,select,textarea,option{color-scheme:light!important}
 </button>
 <script id="teacher-francis-suite-bridge-script">
 (() => {
+  const homeBtn = document.getElementById("teacher-francis-suite-home");
+  if (!homeBtn) return;
+
+  const POSITION_KEY = "teacher-francis-suite-home-position-v1";
+  const EDGE_GAP = 6;
+  const DRAG_THRESHOLD = 6;
+  let activePointer = null;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  let dragging = false;
+  let suppressClickUntil = 0;
+
   const goHome = () => {
     try { speechSynthesis?.cancel?.(); } catch {}
-    parent.postMessage({ type: "teacher-francis-suite-home" }, "*");
+    try {
+      if (window.parent && window.parent !== window) {
+        try { if (typeof window.parent.showHome === "function") { window.parent.showHome(); return; } } catch {}
+        parent.postMessage({ type: "teacher-francis-suite-home" }, "*");
+      } else {
+        location.href = "../index.html";
+      }
+    } catch {
+      location.href = "../index.html";
+    }
   };
-  document.getElementById("teacher-francis-suite-home")?.addEventListener("click", goHome);
+
+  const viewportBox = () => {
+    const vv = window.visualViewport;
+    const width = Math.max(1, vv?.width || document.documentElement.clientWidth || innerWidth || 1);
+    const height = Math.max(1, vv?.height || document.documentElement.clientHeight || innerHeight || 1);
+    const left = vv?.offsetLeft || 0;
+    const top = vv?.offsetTop || 0;
+    return { width, height, left, top };
+  };
+
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max));
+
+  const placeAt = (left, top) => {
+    const vp = viewportBox();
+    const rect = homeBtn.getBoundingClientRect();
+    const minLeft = vp.left + EDGE_GAP;
+    const minTop = vp.top + EDGE_GAP;
+    const maxLeft = vp.left + vp.width - rect.width - EDGE_GAP;
+    const maxTop = vp.top + vp.height - rect.height - EDGE_GAP;
+    const x = clamp(left, minLeft, maxLeft);
+    const y = clamp(top, minTop, maxTop);
+    homeBtn.style.setProperty("left", `${x}px`, "important");
+    homeBtn.style.setProperty("top", `${y}px`, "important");
+    homeBtn.style.setProperty("right", "auto", "important");
+    homeBtn.style.setProperty("bottom", "auto", "important");
+    return { x, y, vp, rect: homeBtn.getBoundingClientRect() };
+  };
+
+  const savePosition = () => {
+    try {
+      const vp = viewportBox();
+      const rect = homeBtn.getBoundingClientRect();
+      const usableW = Math.max(1, vp.width - rect.width - EDGE_GAP * 2);
+      const usableH = Math.max(1, vp.height - rect.height - EDGE_GAP * 2);
+      const x = clamp((rect.left - vp.left - EDGE_GAP) / usableW, 0, 1);
+      const y = clamp((rect.top - vp.top - EDGE_GAP) / usableH, 0, 1);
+      localStorage.setItem(POSITION_KEY, JSON.stringify({ x, y }));
+    } catch {}
+  };
+
+  const restorePosition = () => {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(POSITION_KEY) || "null"); } catch {}
+    if (!saved || !Number.isFinite(saved.x) || !Number.isFinite(saved.y)) return;
+    requestAnimationFrame(() => {
+      const vp = viewportBox();
+      const rect = homeBtn.getBoundingClientRect();
+      const usableW = Math.max(0, vp.width - rect.width - EDGE_GAP * 2);
+      const usableH = Math.max(0, vp.height - rect.height - EDGE_GAP * 2);
+      placeAt(
+        vp.left + EDGE_GAP + clamp(saved.x, 0, 1) * usableW,
+        vp.top + EDGE_GAP + clamp(saved.y, 0, 1) * usableH
+      );
+    });
+  };
+
+  const endDrag = (event, cancelled = false) => {
+    if (activePointer === null || event.pointerId !== activePointer) return;
+    const wasDragging = dragging;
+    if (wasDragging) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      savePosition();
+      suppressClickUntil = performance.now() + 700;
+    }
+    try { homeBtn.releasePointerCapture(activePointer); } catch {}
+    activePointer = null;
+    dragging = false;
+    homeBtn.removeAttribute("data-tf-dragging");
+    homeBtn.setAttribute("aria-grabbed", "false");
+    if (!wasDragging && !cancelled) goHome();
+  };
+
+  homeBtn.setAttribute("aria-grabbed", "false");
+  homeBtn.setAttribute("title", "All Apps • Drag to move • Shift + Escape");
+
+  homeBtn.addEventListener("pointerdown", event => {
+    if (activePointer !== null) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const rect = homeBtn.getBoundingClientRect();
+    activePointer = event.pointerId;
+    startX = event.clientX;
+    startY = event.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    dragging = false;
+    try { homeBtn.setPointerCapture(event.pointerId); } catch {}
+  });
+
+  homeBtn.addEventListener("pointermove", event => {
+    if (event.pointerId !== activePointer) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (!dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
+      dragging = true;
+      homeBtn.setAttribute("data-tf-dragging", "true");
+      homeBtn.setAttribute("aria-grabbed", "true");
+    }
+    if (!dragging) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    placeAt(startLeft + dx, startTop + dy);
+  });
+
+  homeBtn.addEventListener("pointerup", event => endDrag(event, false));
+  homeBtn.addEventListener("pointercancel", event => endDrag(event, true));
+  homeBtn.addEventListener("lostpointercapture", event => {
+    if (activePointer !== null && event.pointerId === activePointer && dragging) {
+      savePosition();
+      activePointer = null;
+      dragging = false;
+      homeBtn.removeAttribute("data-tf-dragging");
+      homeBtn.setAttribute("aria-grabbed", "false");
+    }
+  });
+
+  // Keyboard-generated clicks should still work, while the synthetic click
+  // after a drag is suppressed so moving the button never exits the module.
+  homeBtn.addEventListener("click", event => {
+    if (performance.now() < suppressClickUntil) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    if (event.detail === 0) goHome();
+  });
+
   document.addEventListener("keydown", event => {
     if (event.shiftKey && event.key === "Escape") {
       event.preventDefault();
@@ -487,6 +643,13 @@ button,input,select,textarea,option{color-scheme:light!important}
       goHome();
     }
   }, true);
+
+  const refit = () => restorePosition();
+  window.addEventListener("resize", refit, { passive: true });
+  window.visualViewport?.addEventListener("resize", refit, { passive: true });
+  window.visualViewport?.addEventListener("scroll", refit, { passive: true });
+  window.addEventListener("orientationchange", () => setTimeout(refit, 80), { passive: true });
+  restorePosition();
 })();
 </script>
 

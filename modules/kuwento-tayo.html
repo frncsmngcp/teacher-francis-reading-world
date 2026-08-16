@@ -103,7 +103,7 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 .result-stars{font-size:clamp(34px,4vw,70px);text-align:center;color:#f7b400;text-shadow:0 3px 0 #915c00} .result-msg{font-size:clamp(20px,2vw,36px);font-weight:900;text-align:center;margin:2% 0} .result-actions{display:flex;justify-content:center;gap:15px;flex-wrap:wrap} .action-btn{border:0;border-radius:20px;padding:14px 24px;font-weight:900;cursor:pointer;background:#4c9b31;color:white;box-shadow:0 5px 0 #2d671d} .action-btn.secondary{background:#6d4cba;box-shadow:0 5px 0 #443078}
 .toast{display:none!important;position:absolute;z-index:60;left:50%;bottom:2%;transform:translateX(-50%) translateY(120%);background:rgba(50,31,12,.92);color:white;border:2px solid #f5cf8d;border-radius:999px;padding:10px 18px;font-weight:800;transition:.3s;pointer-events:none;font-size:clamp(11px,1vw,18px)} .toast.show{transform:translateX(-50%) translateY(0)}
 @media (max-width:800px){.badge-grid{grid-template-columns:repeat(3,1fr)}.panel{width:90%}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* Full-motion classroom mode: device Reduce Motion does not disable app animation. */
 
 /* Gentle animated atmosphere: sun rays, sparkle drift, page reveals. */
 .screen{isolation:isolate}
@@ -144,9 +144,7 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 @keyframes ktSceneReveal{from{opacity:0;transform:scale(.965)}to{opacity:1;transform:scale(1)}}
 @keyframes ktCopyReveal{from{opacity:0;transform:translateY(2.5%)}to{opacity:1;transform:translateY(0)}}
 @keyframes ktNavGlow{0%,100%{box-shadow:var(--shadow),0 0 0 rgba(255,219,120,0)}50%{box-shadow:var(--shadow),0 0 18px rgba(255,219,120,.55)}}
-@media (prefers-reduced-motion:reduce){
- .screen.active,.screen::before,.screen::after,.book-card .book-cover,.scene-image,.cover-image,.story-copy,.question-wrap,.reader-nav{animation:none!important;transition:none!important}
-}
+/* Full-motion classroom mode: device Reduce Motion does not disable app animation. */
 
 /* Typography / reader-fit corrections: preserve descenders and keep labels inside artwork */
 .reader-status{
@@ -664,9 +662,11 @@ if(document.fonts?.ready)document.fonts.ready.then(()=>{if(state.screen==='reade
     color: #fff !important;
     font: 900 13px/1 system-ui,-apple-system,"Segoe UI",sans-serif !important;
     letter-spacing: .035em !important;
-    cursor: pointer !important;
+    cursor: grab !important;
     user-select: none !important;
     -webkit-tap-highlight-color: transparent !important;
+    touch-action: none !important;
+    -webkit-user-drag: none !important;
     opacity: .94 !important;
     overflow: hidden !important;
     transition: transform .16s ease, opacity .16s ease, box-shadow .16s ease !important;
@@ -711,6 +711,14 @@ if(document.fonts?.ready)document.fonts.ready.then(()=>{if(state.screen==='reade
     font: inherit !important;
     letter-spacing: inherit !important;
   }
+
+  #teacher-francis-suite-home[data-tf-dragging="true"] {
+    cursor: grabbing !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    box-shadow: 0 8px 22px rgba(0,25,35,.42), inset 0 1px 0 rgba(255,255,255,.36) !important;
+  }
   @keyframes tfSuiteSheen { from{left:-65%} to{left:130%} }
   @media (max-width: 760px), (max-height: 560px) {
     #teacher-francis-suite-home { min-width:42px !important; width:42px !important; padding:0 !important; }
@@ -723,18 +731,157 @@ if(document.fonts?.ready)document.fonts.ready.then(()=>{if(state.screen==='reade
 </button>
 <script id="teacher-francis-suite-bridge-script">
 (() => {
+  const homeBtn = document.getElementById("teacher-francis-suite-home");
+  if (!homeBtn) return;
+
+  const POSITION_KEY = "teacher-francis-suite-home-position-v1";
+  const EDGE_GAP = 6;
+  const DRAG_THRESHOLD = 6;
+  let activePointer = null;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  let dragging = false;
+  let suppressClickUntil = 0;
+
   const goHome = () => {
     try { speechSynthesis?.cancel?.(); } catch {}
     try {
       if (window.parent && window.parent !== window) {
         try { if (typeof window.parent.showHome === "function") { window.parent.showHome(); return; } } catch {}
         parent.postMessage({ type: "teacher-francis-suite-home" }, "*");
-      } else location.href = "../index.html";
-    } catch { location.href = "../index.html"; }
+      } else {
+        location.href = "../index.html";
+      }
+    } catch {
+      location.href = "../index.html";
+    }
   };
-  const homeBtn=document.getElementById("teacher-francis-suite-home");let homeTouchAt=0;
-  homeBtn?.addEventListener("pointerup", event=>{if(event.pointerType!=="mouse"){homeTouchAt=performance.now();goHome();}});
-  homeBtn?.addEventListener("click", ()=>{if(performance.now()-homeTouchAt>450)goHome();});
+
+  const viewportBox = () => {
+    const vv = window.visualViewport;
+    const width = Math.max(1, vv?.width || document.documentElement.clientWidth || innerWidth || 1);
+    const height = Math.max(1, vv?.height || document.documentElement.clientHeight || innerHeight || 1);
+    const left = vv?.offsetLeft || 0;
+    const top = vv?.offsetTop || 0;
+    return { width, height, left, top };
+  };
+
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max));
+
+  const placeAt = (left, top) => {
+    const vp = viewportBox();
+    const rect = homeBtn.getBoundingClientRect();
+    const minLeft = vp.left + EDGE_GAP;
+    const minTop = vp.top + EDGE_GAP;
+    const maxLeft = vp.left + vp.width - rect.width - EDGE_GAP;
+    const maxTop = vp.top + vp.height - rect.height - EDGE_GAP;
+    const x = clamp(left, minLeft, maxLeft);
+    const y = clamp(top, minTop, maxTop);
+    homeBtn.style.setProperty("left", `${x}px`, "important");
+    homeBtn.style.setProperty("top", `${y}px`, "important");
+    homeBtn.style.setProperty("right", "auto", "important");
+    homeBtn.style.setProperty("bottom", "auto", "important");
+    return { x, y, vp, rect: homeBtn.getBoundingClientRect() };
+  };
+
+  const savePosition = () => {
+    try {
+      const vp = viewportBox();
+      const rect = homeBtn.getBoundingClientRect();
+      const usableW = Math.max(1, vp.width - rect.width - EDGE_GAP * 2);
+      const usableH = Math.max(1, vp.height - rect.height - EDGE_GAP * 2);
+      const x = clamp((rect.left - vp.left - EDGE_GAP) / usableW, 0, 1);
+      const y = clamp((rect.top - vp.top - EDGE_GAP) / usableH, 0, 1);
+      localStorage.setItem(POSITION_KEY, JSON.stringify({ x, y }));
+    } catch {}
+  };
+
+  const restorePosition = () => {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(POSITION_KEY) || "null"); } catch {}
+    if (!saved || !Number.isFinite(saved.x) || !Number.isFinite(saved.y)) return;
+    requestAnimationFrame(() => {
+      const vp = viewportBox();
+      const rect = homeBtn.getBoundingClientRect();
+      const usableW = Math.max(0, vp.width - rect.width - EDGE_GAP * 2);
+      const usableH = Math.max(0, vp.height - rect.height - EDGE_GAP * 2);
+      placeAt(
+        vp.left + EDGE_GAP + clamp(saved.x, 0, 1) * usableW,
+        vp.top + EDGE_GAP + clamp(saved.y, 0, 1) * usableH
+      );
+    });
+  };
+
+  const endDrag = (event, cancelled = false) => {
+    if (activePointer === null || event.pointerId !== activePointer) return;
+    const wasDragging = dragging;
+    if (wasDragging) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      savePosition();
+      suppressClickUntil = performance.now() + 700;
+    }
+    try { homeBtn.releasePointerCapture(activePointer); } catch {}
+    activePointer = null;
+    dragging = false;
+    homeBtn.removeAttribute("data-tf-dragging");
+    homeBtn.setAttribute("aria-grabbed", "false");
+    if (!wasDragging && !cancelled) goHome();
+  };
+
+  homeBtn.setAttribute("aria-grabbed", "false");
+  homeBtn.setAttribute("title", "All Apps • Drag to move • Shift + Escape");
+
+  homeBtn.addEventListener("pointerdown", event => {
+    if (activePointer !== null) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const rect = homeBtn.getBoundingClientRect();
+    activePointer = event.pointerId;
+    startX = event.clientX;
+    startY = event.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    dragging = false;
+    try { homeBtn.setPointerCapture(event.pointerId); } catch {}
+  });
+
+  homeBtn.addEventListener("pointermove", event => {
+    if (event.pointerId !== activePointer) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (!dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
+      dragging = true;
+      homeBtn.setAttribute("data-tf-dragging", "true");
+      homeBtn.setAttribute("aria-grabbed", "true");
+    }
+    if (!dragging) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    placeAt(startLeft + dx, startTop + dy);
+  });
+
+  homeBtn.addEventListener("pointerup", event => endDrag(event, false));
+  homeBtn.addEventListener("pointercancel", event => endDrag(event, true));
+  homeBtn.addEventListener("lostpointercapture", event => {
+    if (activePointer !== null && event.pointerId === activePointer && dragging) {
+      savePosition();
+      activePointer = null;
+      dragging = false;
+      homeBtn.removeAttribute("data-tf-dragging");
+      homeBtn.setAttribute("aria-grabbed", "false");
+    }
+  });
+
+  // Keyboard-generated clicks should still work, while the synthetic click
+  // after a drag is suppressed so moving the button never exits the module.
+  homeBtn.addEventListener("click", event => {
+    if (performance.now() < suppressClickUntil) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    if (event.detail === 0) goHome();
+  });
+
   document.addEventListener("keydown", event => {
     if (event.shiftKey && event.key === "Escape") {
       event.preventDefault();
@@ -742,6 +889,13 @@ if(document.fonts?.ready)document.fonts.ready.then(()=>{if(state.screen==='reade
       goHome();
     }
   }, true);
+
+  const refit = () => restorePosition();
+  window.addEventListener("resize", refit, { passive: true });
+  window.visualViewport?.addEventListener("resize", refit, { passive: true });
+  window.visualViewport?.addEventListener("scroll", refit, { passive: true });
+  window.addEventListener("orientationchange", () => setTimeout(refit, 80), { passive: true });
+  restorePosition();
 })();
 </script>
 
