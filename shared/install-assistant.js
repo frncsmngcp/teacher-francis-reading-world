@@ -4,6 +4,7 @@
   const DISMISS_KEY = 'tfReadingWorldInstallAssistantDismissedAt';
   const DISMISS_FOR_MS = 3 * 24 * 60 * 60 * 1000;
   const homeScreen = document.getElementById('home-screen');
+  const suiteShell = document.getElementById('suite');
   if (!homeScreen) return;
 
   let deferredPrompt = null;
@@ -185,14 +186,14 @@
     style.id = 'tf-install-assistant-style';
     style.textContent = `
       #tf-install-launcher{
-        position:absolute;left:1.45%;top:2.0%;z-index:80;
+        position:fixed;left:1.45%;top:2.0%;z-index:9000;
         min-width:10.6%;height:6.2%;padding:0 1.15%;
         display:flex;align-items:center;justify-content:center;gap:.48cqw;
         border:.16cqw solid rgba(255,238,165,.92);border-radius:999px;
         color:#fff7d4;background:linear-gradient(180deg,rgba(82,45,126,.96),rgba(50,22,91,.97));
         box-shadow:0 .42cqw 0 rgba(25,9,50,.75),0 .7cqw 1.3cqw rgba(0,0,0,.3),inset 0 .1cqw .16cqw rgba(255,255,255,.38);
         font:900 clamp(10px,1.14cqw,19px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;
-        letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;pointer-events:auto!important;
+        letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:none;pointer-events:auto!important;-webkit-touch-callout:none;
         -webkit-user-select:none;user-select:none;transform:translateZ(0);-webkit-transform:translateZ(0);
         transition:transform .16s ease,filter .16s ease,opacity .18s ease;
       }
@@ -200,6 +201,7 @@
       #tf-install-launcher:hover,#tf-install-launcher:focus-visible{outline:none;filter:brightness(1.13);transform:translateY(-2%)}
       #tf-install-launcher:active{transform:translateY(1%) scale(.98)}
       #tf-install-launcher[hidden]{display:none!important}
+      #tf-install-launcher::after{content:"";position:absolute;inset:-7px;border-radius:999px;pointer-events:auto}
 
       #tf-install-modal{position:fixed;inset:auto;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:12000;display:none;place-items:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(2,15,25,.7);backdrop-filter:blur(13px) saturate(.9);-webkit-backdrop-filter:blur(13px) saturate(.9)}
       #tf-install-modal.open{display:grid}
@@ -223,7 +225,7 @@
       .tf-install-success{text-align:center;padding:18px 8px 5px;color:#365b28;font:850 18px/1.4 system-ui}
       @media(max-width:560px){.tf-install-card{border-radius:24px;padding:24px 18px 20px}.tf-install-actions{grid-template-columns:1fr}.tf-install-actions #tf-install-action{grid-row:1}.tf-install-icon{width:64px;height:64px;font-size:32px}.tf-install-close{width:38px;height:38px}.tf-install-steps li{font-size:14px}}
       @media(max-height:600px) and (orientation:landscape){
-        #tf-install-launcher{left:max(14px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:auto;min-width:118px;height:44px;min-height:44px;padding:0 14px;font-size:12px;border-width:2px;gap:7px}
+        #tf-install-launcher{width:auto;min-width:126px;height:48px;min-height:48px;padding:0 16px;font-size:12px;border-width:2px;gap:7px}
         #tf-install-launcher::before{width:24px;height:24px;min-width:24px;min-height:24px}
         .tf-install-card{width:min(calc(var(--tf-usable-width,100vw) - 32px),760px);max-height:calc(var(--tf-usable-height,100vh) - 32px);padding:18px 24px}
         .tf-install-icon{width:48px;height:48px;margin-bottom:6px;font-size:25px;border-radius:16px}.tf-install-title{font-size:25px}.tf-install-body{font-size:13px;margin:8px auto}.tf-install-steps{grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.tf-install-steps li{grid-template-columns:26px 1fr;padding:8px;font-size:11px}.tf-install-steps li::before{width:24px;height:24px}.tf-install-actions{margin-top:10px}.tf-install-actions button{min-height:44px}.tf-install-tip{font-size:11px;padding:7px}
@@ -328,6 +330,38 @@
     try { launcher?.focus({ preventScroll: true }); } catch (_) {}
   }
 
+  let launcherPositionRaf = 0;
+  function positionLauncher() {
+    if (!launcher || !suiteShell) return;
+    cancelAnimationFrame(launcherPositionRaf);
+    launcherPositionRaf = requestAnimationFrame(() => {
+      const rect = suiteShell.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const vp = window.tfUsableViewport?.();
+      const landscape = Number(vp?.width || innerWidth || 0) > Number(vp?.height || innerHeight || 0);
+      // Keep the install control away from Safari/Chrome's edge gesture and
+      // toolbar hit regions. Because the launcher is portaled to <body>, it is
+      // no longer hit-tested through the transformed #suite ancestor.
+      const insetX = landscape ? 26 : Math.max(14, rect.width * 0.0145);
+      const insetY = landscape ? 20 : Math.max(12, rect.height * 0.020);
+      launcher.style.left = `calc(${Math.round(rect.left + insetX)}px + env(safe-area-inset-left))`;
+      launcher.style.top = `calc(${Math.round(rect.top + insetY)}px + env(safe-area-inset-top))`;
+    });
+  }
+
+  function syncLauncherVisibility() {
+    if (!launcher) return;
+    launcher.hidden = installedDetected || !homeScreen.classList.contains('active');
+    if (!launcher.hidden) positionLauncher();
+  }
+
+  function launcherContainsPoint(clientX, clientY, extra = 3) {
+    if (!launcher || launcher.hidden || !homeScreen.classList.contains('active')) return false;
+    const r = launcher.getBoundingClientRect();
+    return clientX >= r.left - extra && clientX <= r.right + extra &&
+      clientY >= r.top - extra && clientY <= r.bottom + extra;
+  }
+
   function ensureUI() {
     if (modal && launcher) return;
     injectStyle();
@@ -338,7 +372,10 @@
     launcher.textContent = 'Install App';
     launcher.hidden = true;
     launcher.setAttribute('aria-label', 'Install Teacher Francis Reading World');
-    homeScreen.appendChild(launcher);
+    // Portal the launcher above the transformed suite. Mobile Safari can
+    // visually paint a transformed child correctly while exposing an unreliable
+    // touch hit region after landscape toolbar changes.
+    document.body.appendChild(launcher);
 
     modal = document.createElement('div');
     modal.id = 'tf-install-modal';
@@ -371,11 +408,50 @@
       event?.stopPropagation?.();
       void openModal(true);
     };
-    // iOS Safari can suppress the synthetic click after a landscape viewport /
-    // toolbar change. Pointer-up keeps the visible Install App control tappable
-    // while the click listener remains the keyboard/mouse fallback.
+    // Keep the button's own handlers, then add a capture-phase geometry
+    // fallback below. The fallback means every visible pixel of the launcher
+    // activates it even if Safari temporarily assigns the touch to a neighboring
+    // composited layer after an orientation / toolbar transition.
     launcher.addEventListener('pointerup', activateLauncher);
     launcher.addEventListener('click', activateLauncher);
+
+    let launcherPress = null;
+    document.addEventListener('pointerdown', event => {
+      if (!event.isPrimary || !launcherContainsPoint(event.clientX, event.clientY, 6)) return;
+      launcherPress = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    }, true);
+    document.addEventListener('pointerup', event => {
+      if (!launcherPress || event.pointerId !== launcherPress.id) return;
+      const press = launcherPress;
+      launcherPress = null;
+      const moved = Math.hypot(event.clientX - press.x, event.clientY - press.y);
+      if (moved <= 18 && launcherContainsPoint(event.clientX, event.clientY, 8)) activateLauncher(event);
+    }, true);
+    document.addEventListener('pointercancel', event => {
+      if (launcherPress && event.pointerId === launcherPress.id) launcherPress = null;
+    }, true);
+
+    // Older iOS WebKit builds that do not expose PointerEvent still receive a
+    // coordinate-based touch fallback.
+    if (!('PointerEvent' in window)) {
+      let touchPress = null;
+      document.addEventListener('touchstart', event => {
+        const t = event.changedTouches?.[0];
+        if (!t || !launcherContainsPoint(t.clientX, t.clientY, 6)) return;
+        touchPress = { id: t.identifier, x: t.clientX, y: t.clientY };
+      }, { capture: true, passive: true });
+      document.addEventListener('touchend', event => {
+        if (!touchPress) return;
+        const t = Array.from(event.changedTouches || []).find(item => item.identifier === touchPress.id);
+        if (!t) return;
+        const press = touchPress;
+        touchPress = null;
+        const moved = Math.hypot(t.clientX - press.x, t.clientY - press.y);
+        if (moved <= 18 && launcherContainsPoint(t.clientX, t.clientY, 8)) activateLauncher(event);
+      }, { capture: true, passive: false });
+      document.addEventListener('touchcancel', () => { touchPress = null; }, { capture: true, passive: true });
+    }
+    positionLauncher();
     modal.querySelector('.tf-install-close').addEventListener('click', () => closeModal(true));
     modal.querySelector('#tf-install-later').addEventListener('click', () => closeModal(true));
     modal.addEventListener('pointerdown', event => {
@@ -469,7 +545,7 @@
 
   function applyInstallVisibility(installed) {
     installedDetected = !!installed;
-    if (launcher) launcher.hidden = installedDetected;
+    syncLauncherVisibility();
     if (installedDetected) {
       modal?.classList.remove('open');
       if (iosCoachOpen) stopIOSCoach(false);
@@ -586,12 +662,17 @@
     if (!document.hidden) void refreshInstallState({ force: true });
   });
   window.addEventListener('resize', () => {
+    positionLauncher();
     if (iosCoachOpen) { try { window.tfApplySafeViewport?.(); } catch (_) {} }
   });
   window.addEventListener('orientationchange', () => {
+    positionLauncher();
+    setTimeout(positionLauncher, 100);
+    setTimeout(positionLauncher, 420);
     if (iosCoachOpen) setTimeout(() => { try { window.tfApplySafeViewport?.(); } catch (_) {} }, 80);
   });
   window.addEventListener('tfviewportchange', () => {
+    positionLauncher();
     if (iosCoachOpen && iosCoach) {
       iosCoach.style.width = 'var(--tf-usable-width,100vw)';
       iosCoach.style.height = 'var(--tf-usable-height,100vh)';
@@ -600,6 +681,8 @@
 
   // If a user returns to All Apps later, keep the install launcher state fresh.
   new MutationObserver(() => {
+    syncLauncherVisibility();
+    positionLauncher();
     void refreshInstallState({ force: true });
     void maybeAutoShow();
   }).observe(homeScreen, { attributes: true, attributeFilter: ['class'] });
