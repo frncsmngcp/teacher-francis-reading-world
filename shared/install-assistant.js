@@ -185,14 +185,15 @@
     style.id = 'tf-install-assistant-style';
     style.textContent = `
       #tf-install-launcher{
-        position:absolute;left:1.45%;top:2.0%;z-index:40;
+        position:absolute;left:1.45%;top:2.0%;z-index:80;
         min-width:10.6%;height:6.2%;padding:0 1.15%;
         display:flex;align-items:center;justify-content:center;gap:.48cqw;
         border:.16cqw solid rgba(255,238,165,.92);border-radius:999px;
         color:#fff7d4;background:linear-gradient(180deg,rgba(82,45,126,.96),rgba(50,22,91,.97));
         box-shadow:0 .42cqw 0 rgba(25,9,50,.75),0 .7cqw 1.3cqw rgba(0,0,0,.3),inset 0 .1cqw .16cqw rgba(255,255,255,.38);
         font:900 clamp(10px,1.14cqw,19px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;
-        letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+        letter-spacing:.01em;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;pointer-events:auto!important;
+        -webkit-user-select:none;user-select:none;transform:translateZ(0);-webkit-transform:translateZ(0);
         transition:transform .16s ease,filter .16s ease,opacity .18s ease;
       }
       #tf-install-launcher::before{content:"↓";display:grid;place-items:center;width:1.85cqw;height:1.85cqw;min-width:16px;min-height:16px;border-radius:50%;background:#ffd85b;color:#532372;font-weight:1000;box-shadow:inset 0 -.12cqw .2cqw rgba(134,81,0,.25)}
@@ -202,7 +203,7 @@
 
       #tf-install-modal{position:fixed;inset:auto;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:12000;display:none;place-items:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(2,15,25,.7);backdrop-filter:blur(13px) saturate(.9);-webkit-backdrop-filter:blur(13px) saturate(.9)}
       #tf-install-modal.open{display:grid}
-      .tf-install-card{position:relative;width:min(92vw,640px);max-height:min(88vh,720px);overflow:auto;overscroll-behavior:contain;padding:clamp(22px,4vw,38px);border-radius:30px;border:2px solid rgba(255,239,165,.92);color:#3f2a18;background:linear-gradient(180deg,#fff8db 0%,#f8e8bc 100%);box-shadow:0 30px 90px rgba(0,0,0,.48),inset 0 0 0 5px rgba(185,116,32,.14);-webkit-overflow-scrolling:touch}
+      .tf-install-card{position:relative;width:min(calc(var(--tf-usable-width,100vw) - 32px),640px);max-height:min(calc(var(--tf-usable-height,100vh) - 32px),720px);overflow:auto;overscroll-behavior:contain;padding:clamp(22px,4vw,38px);border-radius:30px;border:2px solid rgba(255,239,165,.92);color:#3f2a18;background:linear-gradient(180deg,#fff8db 0%,#f8e8bc 100%);box-shadow:0 30px 90px rgba(0,0,0,.48),inset 0 0 0 5px rgba(185,116,32,.14);-webkit-overflow-scrolling:touch}
       .tf-install-card::before{content:"";position:absolute;left:-12%;right:-12%;top:-95px;height:190px;pointer-events:none;background:radial-gradient(circle,rgba(255,214,75,.44),rgba(255,214,75,0) 68%)}
       .tf-install-close{position:absolute;top:14px;right:14px;width:42px;height:42px;border:0;border-radius:50%;background:#9d4b20;color:white;font:900 24px/1 system-ui;cursor:pointer;touch-action:manipulation}
       .tf-install-icon{position:relative;width:76px;height:76px;margin:0 auto 12px;display:grid;place-items:center;border-radius:24px;background:linear-gradient(160deg,#6f3cac,#3b1d77);border:4px solid #ffe38b;box-shadow:0 8px 0 #2f155f,0 14px 28px rgba(52,23,98,.28);font-size:38px}
@@ -221,12 +222,17 @@
       #tf-install-action:disabled{opacity:.65;cursor:default}
       .tf-install-success{text-align:center;padding:18px 8px 5px;color:#365b28;font:850 18px/1.4 system-ui}
       @media(max-width:560px){.tf-install-card{border-radius:24px;padding:24px 18px 20px}.tf-install-actions{grid-template-columns:1fr}.tf-install-actions #tf-install-action{grid-row:1}.tf-install-icon{width:64px;height:64px;font-size:32px}.tf-install-close{width:38px;height:38px}.tf-install-steps li{font-size:14px}}
-      @media(max-height:520px) and (orientation:landscape){.tf-install-card{width:min(90vw,760px);max-height:90vh;padding:18px 24px}.tf-install-icon{width:48px;height:48px;margin-bottom:6px;font-size:25px;border-radius:16px}.tf-install-title{font-size:25px}.tf-install-body{font-size:13px;margin:8px auto}.tf-install-steps{grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.tf-install-steps li{grid-template-columns:26px 1fr;padding:8px;font-size:11px}.tf-install-steps li::before{width:24px;height:24px}.tf-install-actions{margin-top:10px}.tf-install-actions button{min-height:42px}.tf-install-tip{font-size:11px;padding:7px}}
+      @media(max-height:600px) and (orientation:landscape){
+        #tf-install-launcher{left:max(14px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));width:auto;min-width:118px;height:44px;min-height:44px;padding:0 14px;font-size:12px;border-width:2px;gap:7px}
+        #tf-install-launcher::before{width:24px;height:24px;min-width:24px;min-height:24px}
+        .tf-install-card{width:min(calc(var(--tf-usable-width,100vw) - 32px),760px);max-height:calc(var(--tf-usable-height,100vh) - 32px);padding:18px 24px}
+        .tf-install-icon{width:48px;height:48px;margin-bottom:6px;font-size:25px;border-radius:16px}.tf-install-title{font-size:25px}.tf-install-body{font-size:13px;margin:8px auto}.tf-install-steps{grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.tf-install-steps li{grid-template-columns:26px 1fr;padding:8px;font-size:11px}.tf-install-steps li::before{width:24px;height:24px}.tf-install-actions{margin-top:10px}.tf-install-actions button{min-height:44px}.tf-install-tip{font-size:11px;padding:7px}
+      }
 
       #tf-ios-install-coach{position:fixed;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:13050;display:none;pointer-events:none;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
       #tf-ios-install-coach.open{display:block}
       .tf-ios-coach-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,20,35,.28),rgba(7,20,35,.58));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-      .tf-ios-coach-card{pointer-events:auto;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(88vw,430px);max-height:70vh;overflow:auto;padding:22px 20px 18px;border:2px solid rgba(255,235,142,.96);border-radius:26px;background:linear-gradient(165deg,rgba(83,42,132,.98),rgba(44,20,86,.98));box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.28);text-align:center;-webkit-overflow-scrolling:touch}
+      .tf-ios-coach-card{pointer-events:auto;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(calc(var(--tf-usable-width,100vw) * .88),430px);max-height:calc(var(--tf-usable-height,100vh) * .70);overflow:auto;padding:22px 20px 18px;border:2px solid rgba(255,235,142,.96);border-radius:26px;background:linear-gradient(165deg,rgba(83,42,132,.98),rgba(44,20,86,.98));box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.28);text-align:center;-webkit-overflow-scrolling:touch}
       .tf-ios-coach-close{position:absolute;right:10px;top:10px;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font:900 23px/1 system-ui;cursor:pointer}
       .tf-ios-coach-kicker{margin:1px 42px 8px;color:#ffe590;font:950 11px/1.2 system-ui;letter-spacing:.12em}
       .tf-ios-coach-title{margin:0;color:#fff8dc;font:950 clamp(24px,6vw,34px)/1.05 system-ui}
@@ -254,7 +260,7 @@
       #tf-ios-install-coach.iphone .tf-ios-target-top{opacity:.58;transform:scale(.9);transform-origin:top right}
       @keyframes tfIOSCoachPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,216,87,.74),0 8px 22px rgba(0,0,0,.32);transform:translateY(0)}50%{box-shadow:0 0 0 12px rgba(255,216,87,0),0 10px 26px rgba(0,0,0,.36);transform:translateY(-2px)}}
       @media(max-width:560px){.tf-ios-coach-card{width:min(89vw,410px);padding:20px 15px 16px}.tf-ios-coach-step{grid-template-columns:30px 40px 1fr;gap:7px;font-size:12px}.tf-ios-coach-symbol{width:38px;height:38px}.tf-ios-target{font-size:11px;max-width:68vw;padding:7px 9px}.tf-ios-target::before{width:29px;height:29px}}
-      @media(max-height:520px) and (orientation:landscape){.tf-ios-coach-card{width:min(70vw,520px);max-height:82vh;top:50%;padding:15px}.tf-ios-coach-title{font-size:24px}.tf-ios-coach-intro{font-size:11px;margin:6px auto}.tf-ios-coach-steps{grid-template-columns:repeat(3,1fr);gap:6px}.tf-ios-coach-step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:7px;font-size:10px}.tf-ios-coach-number{width:24px;height:24px}.tf-ios-coach-symbol{width:34px;height:34px}.tf-ios-coach-note{font-size:10px;margin-top:7px}.tf-ios-coach-actions{margin-top:8px}.tf-ios-target{font-size:10px}}
+      @media(max-height:600px) and (orientation:landscape){.tf-ios-coach-card{width:min(calc(var(--tf-usable-width,100vw) * .70),520px);max-height:calc(var(--tf-usable-height,100vh) - 28px);top:50%;padding:15px}.tf-ios-coach-title{font-size:24px}.tf-ios-coach-intro{font-size:11px;margin:6px auto}.tf-ios-coach-steps{grid-template-columns:repeat(3,1fr);gap:6px}.tf-ios-coach-step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:7px;font-size:10px}.tf-ios-coach-number{width:24px;height:24px}.tf-ios-coach-symbol{width:34px;height:34px}.tf-ios-coach-note{font-size:10px;margin-top:7px}.tf-ios-coach-actions{margin-top:8px}.tf-ios-coach-actions button{min-height:44px}.tf-ios-target{font-size:10px}}
     `;
     document.head.appendChild(style);
   }
@@ -356,7 +362,20 @@
     document.body.appendChild(modal);
     try { window.tfApplySafeViewport?.(); } catch (_) {}
 
-    launcher.addEventListener('click', () => { void openModal(true); });
+    let launcherActivatedAt = 0;
+    const activateLauncher = event => {
+      const now = performance.now();
+      if (now - launcherActivatedAt < 650) return;
+      launcherActivatedAt = now;
+      if (event?.cancelable) event.preventDefault();
+      event?.stopPropagation?.();
+      void openModal(true);
+    };
+    // iOS Safari can suppress the synthetic click after a landscape viewport /
+    // toolbar change. Pointer-up keeps the visible Install App control tappable
+    // while the click listener remains the keyboard/mouse fallback.
+    launcher.addEventListener('pointerup', activateLauncher);
+    launcher.addEventListener('click', activateLauncher);
     modal.querySelector('.tf-install-close').addEventListener('click', () => closeModal(true));
     modal.querySelector('#tf-install-later').addEventListener('click', () => closeModal(true));
     modal.addEventListener('pointerdown', event => {
@@ -365,7 +384,18 @@
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && modal.classList.contains('open')) closeModal(true);
     });
-    modal.querySelector('#tf-install-action').addEventListener('click', handlePrimaryAction);
+    const primaryAction = modal.querySelector('#tf-install-action');
+    let primaryActivatedAt = 0;
+    const activatePrimary = event => {
+      const now = performance.now();
+      if (now - primaryActivatedAt < 650) return;
+      primaryActivatedAt = now;
+      if (event?.cancelable) event.preventDefault();
+      event?.stopPropagation?.();
+      void handlePrimaryAction();
+    };
+    primaryAction.addEventListener('pointerup', activatePrimary);
+    primaryAction.addEventListener('click', activatePrimary);
   }
 
   function renderModal() {
