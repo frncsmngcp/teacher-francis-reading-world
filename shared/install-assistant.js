@@ -317,6 +317,7 @@
     modal?.classList.remove('open');
     iosCoachOpen = true;
     iosCoach.classList.add('open');
+    try { window.TFAnalytics?.track('ios_install_guide_open'); } catch (_) {}
     try { window.tfApplySafeViewport?.(); } catch (_) {}
     setTimeout(() => {
       try { iosCoach.querySelector('.tf-ios-coach-card')?.focus?.({ preventScroll: true }); } catch (_) {}
@@ -430,6 +431,7 @@
       launcherActivatedAt = now;
       if (event?.cancelable) event.preventDefault();
       event?.stopPropagation?.();
+      try { window.TFAnalytics?.track('install_button_tap'); } catch (_) {}
       void openModal(true);
     };
     // Keep the button's own handlers, then add a capture-phase geometry
@@ -525,6 +527,7 @@
     renderModal();
     modal.classList.add('open');
     modal.dataset.manual = manual ? '1' : '0';
+    try { window.TFAnalytics?.track('install_guide_shown', { guide_trigger: manual ? 'manual' : 'automatic', guide_platform: isIOS ? 'ios' : (deferredPrompt ? 'native_prompt' : 'browser_help') }); } catch (_) {}
     setTimeout(() => modal.querySelector('#tf-install-action')?.focus({ preventScroll: true }), 50);
   }
 
@@ -551,6 +554,7 @@
     try {
       deferredPrompt.prompt();
       const result = await deferredPrompt.userChoice;
+      try { window.TFAnalytics?.track('install_prompt_result', { prompt_outcome: result?.outcome || 'unknown' }); } catch (_) {}
       if (result?.outcome === 'accepted') {
         clearDismissal();
         modal.querySelector('.tf-install-card').innerHTML = '<div class="tf-install-success">✓ Reading World is being installed.<br>You can open it from your app list or Home Screen.</div>';
@@ -627,6 +631,7 @@
 
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
+    try { window.TFAnalytics?.track('install_prompt_available'); } catch (_) {}
     deferredPrompt = event;
     applyInstallVisibility(false);
     void refreshInstallState({ force: true });
@@ -635,6 +640,7 @@
 
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
+    try { window.TFAnalytics?.recordInstallCompleted('browser_appinstalled'); } catch (_) {}
     clearDismissal();
     applyInstallVisibility(true);
     setTimeout(() => { void refreshInstallState({ force: true }); }, 1500);

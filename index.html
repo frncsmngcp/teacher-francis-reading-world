@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.5.13 Kuwento Dyslexia-Friendly Font</title>
+  <title>Teacher Francis Reading World — PWA v1.5.15 Analytics Tracking</title>
   <style>
     :root {
       color-scheme: only light;
@@ -787,6 +787,8 @@
   @media (max-aspect-ratio: 4/3){.startup-card{width:min(96vw,960px);max-height:88vh}}
 </style>
   <script src="./shared/pwa-compat.js"></script>
+  <!-- Anonymous usage analytics for website + installed PWA launches. -->
+  <script src="./shared/reading-world-analytics.js"></script>
 
 <style id="tf-force-light-scheme">
 :root,html,body{color-scheme:only light!important}
@@ -919,6 +921,7 @@ button,input,select,textarea,option{color-scheme:light!important}
       frame.title = meta.title;
       status.textContent = "Opening " + meta.title;
       if (updateHistory) history.pushState({ app: id }, "", "#" + id);
+      try { window.TFAnalytics?.track('module_open', { module_id: id, module_title: meta.title }); } catch (_) {}
       let settled = false;
       const finish = () => {
         if (settled || token !== launchToken) return;

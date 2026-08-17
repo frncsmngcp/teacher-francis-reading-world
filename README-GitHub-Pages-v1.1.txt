@@ -42,3 +42,9 @@ v1.5.10: Fixed mobile landscape installation controls. The Install App launcher 
 v1.5.11: Reworked the Install App launcher hit testing for mobile landscape. The launcher is portaled above the transformed suite, kept farther from browser edge-gesture regions, and uses capture-phase coordinate hit testing so the full visible button responds reliably after Safari/Chrome toolbar or orientation changes.
 v1.5.12: Kept the reliable top-level Install App hit testing, but restored the launcher's original proportional visual sizing using the rendered Reading World stage dimensions. The invisible touch margin and coordinate fallback remain larger than the visible button, so landscape taps stay reliable without the button appearing oversized.
 v1.5.13: Kuwento Tayo now loads the bundled Andika literacy font directly instead of relying on device-specific OpenDyslexic/system fallbacks. Story narration, story titles, comprehension questions, and the rest of the module inherit the same portable reading-friendly font consistently across iOS, Android, and desktop.
+
+
+v1.5.14: Fixed Kuwento Tayo bookshelf clicks on desktop/laptop browsers. The shelf no longer captures the pointer on a normal press; pointer capture starts only after a genuine horizontal swipe/drag, preserving normal book-card clicks while retaining touch swiping.
+
+
+v1.5.15: Added privacy-minimized Google Analytics 4 tracking (G-759JM3JJNM) for website/PWA launches, module opens, PWA install flow, iOS Home Screen detection, offline-library readiness, and Kuwento story opens/completions. No learner names, email addresses, story text, or user-entered content are sent. Google Signals and ads-personalization signals are disabled in the tag configuration.
