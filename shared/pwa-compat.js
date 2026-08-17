@@ -1,6 +1,6 @@
 (() => {
   const moduleName = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '');
-  // Teacher Francis Reading World intentionally uses full classroom motion on every
+  // WonderQuest: Reading World intentionally uses full classroom motion on every
   // device. OS/browser Reduce Motion preferences must not pause defined app effects.
   document.documentElement.classList.add('tf-motion-persistent');
   const motionStyle = document.createElement('style');

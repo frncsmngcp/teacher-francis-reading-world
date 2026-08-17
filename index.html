@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#083e47">
-  <title>Teacher Francis Reading World — PWA v1.5.15 Analytics Tracking</title>
+  <title>WonderQuest: Reading World</title>
   <style>
     :root {
       color-scheme: only light;
@@ -152,27 +152,27 @@
     }
     .launch-hotspot[data-app="awad"] {
       left: 24.4617%; top: 31.2434%; width: 21.7105%; height: 29.7556%;
-      background-image: url("./assets/e2b3898d83bb83b7e679.png");
+      background-image: url("./assets/wq-card-01-awad-v2.png");
     }
     .launch-hotspot[data-app="basa-tayo"] {
       left: 46.7105%; top: 31.4559%; width: 22.5478%; height: 29.5430%;
-      background-image: url("./assets/647a1447b79eb15bc929.png");
+      background-image: url("./assets/wq-card-02-basa-tayo-v2.png");
     }
     .launch-hotspot[data-app="kuwento-tayo"] {
       left: 69.8565%; top: 31.6684%; width: 22.7273%; height: 29.3305%;
-      background-image: url("./assets/4b39af8d776cbf5696cc.png");
+      background-image: url("./assets/wq-card-03-kuwento-tayo-v2.png");
     }
     .launch-hotspot[data-app="fluency-pyramid"] {
       left: 24.2225%; top: 62.6993%; width: 22.1292%; height: 28.6929%;
-      background-image: url("./assets/affe5412a5772a7f2a85.png");
+      background-image: url("./assets/wq-card-04-fluency-pyramid-v2.png");
     }
     .launch-hotspot[data-app="basa-bata-basa"] {
       left: 46.9498%; top: 62.6993%; width: 22.2488%; height: 28.6929%;
-      background-image: url("./assets/2a54a3a93bdad2a045f1.png");
+      background-image: url("./assets/wq-card-05-basa-bata-basa-v2.png");
     }
     .launch-hotspot[data-app="letter-slide"] {
       left: 69.8565%; top: 62.5930%; width: 22.6675%; height: 28.7991%;
-      background-image: url("./assets/8b4cff75e1cb9c6efca6.png");
+      background-image: url("./assets/wq-card-06-letter-slide-v2.png");
     }
 
 
@@ -768,7 +768,8 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Reading World">
+  <meta name="apple-mobile-web-app-title" content="WonderQuest: Reading World">
+  <meta name="application-name" content="WonderQuest: Reading World">
   <meta name="mobile-web-app-capable" content="yes">
 
 <style id="tf-startup-overlay-style">
@@ -794,11 +795,201 @@
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
+
+<style id="wq-about-developer-style">
+  /* Clickable hotspot aligned to the painted information icon beside the sound button. */
+  #about-info-control{
+    position:absolute;
+    /* Pixel-matched to the painted info medallion in the 1672×941 home art. */
+    left:82.3565%;
+    top:3.1881%;
+    width:6.7584%;
+    height:12.1148%;
+    z-index:4;
+    appearance:none;
+    border:0;
+    padding:0;
+    margin:0;
+    border-radius:50%;
+    background:transparent;
+    box-shadow:none;
+    cursor:pointer;
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    transform-origin:center;
+  }
+  #about-info-control::before{
+    content:"";
+    position:absolute;
+    top:-22%;bottom:-22%;left:-72%;width:46%;
+    border-radius:50%;
+    background:linear-gradient(112deg,transparent 0%,rgba(255,255,255,.12) 26%,rgba(255,255,255,.74) 50%,rgba(255,255,255,.12) 72%,transparent 100%);
+    transform:skewX(-18deg);
+    opacity:0;
+    pointer-events:none;
+  }
+  #about-info-control:hover,
+  #about-info-control:focus-visible{
+    outline:none;
+    background:rgba(255,255,255,.035);
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.25),0 0 22px rgba(255,220,85,.24);
+    filter:brightness(1.07);
+  }
+  #about-info-control:hover::before,
+  #about-info-control:focus-visible::before{
+    opacity:1;
+    animation:tfHomeSoundSheen .72s ease-out;
+  }
+  #about-info-control:active{transform:scale(.97);filter:brightness(1.10)}
+
+  #about-developer-overlay{
+    position:absolute;
+    inset:0;
+    z-index:120;
+    display:grid;
+    place-items:center;
+    background:rgba(8,6,18,.38);
+    -webkit-backdrop-filter:blur(9px) brightness(.72);
+    backdrop-filter:blur(9px) brightness(.72);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .22s ease,visibility 0s linear .22s;
+  }
+  #about-developer-overlay.open{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transition:opacity .22s ease;
+  }
+  #about-developer-card{
+    position:relative;
+    height:94%;
+    aspect-ratio:3 / 2;
+    max-width:91%;
+    max-height:94%;
+    filter:drop-shadow(0 20px 38px rgba(0,0,0,.48));
+    transform:translateY(1.2%) scale(.97);
+    transition:transform .24s cubic-bezier(.22,1,.36,1);
+  }
+  #about-developer-overlay.open #about-developer-card{
+    transform:translateY(0) scale(1);
+  }
+  #about-developer-art{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:contain;
+    pointer-events:none;
+    user-select:none;
+  }
+  #about-developer-copy{
+    position:absolute;
+    left:44.4%;
+    top:27.0%;
+    width:41.6%;
+    height:55.8%;
+    padding:0 1.3% 2% 0;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+    color:#4a2a13;
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(10px,1.18vw,18px);
+    font-weight:600;
+    line-height:1.53;
+    text-align:left;
+    text-wrap:pretty;
+    text-shadow:0 1px 0 rgba(255,244,203,.5);
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y pinch-zoom;
+    scroll-behavior:smooth;
+    pointer-events:auto;
+  }
+  #about-developer-copy::-webkit-scrollbar{width:0;height:0;display:none}
+  #about-developer-copy p{margin:0 0 1.05em}
+  #about-developer-copy strong{font-weight:800;color:#34190b}
+  #about-developer-copy .about-signature{
+    margin-top:1.35em;
+    margin-bottom:.2em;
+    font-weight:800;
+    color:#32180b;
+  }
+  #about-developer-copy .about-tagline{
+    margin-top:.15em;
+    font-weight:700;
+    font-style:italic;
+    color:#5a351b;
+  }
+  #about-developer-close{
+    position:absolute;
+    /* Pixel-matched to the circular X medallion in the 1536×1024 panel art. */
+    left:90.2344%;
+    top:11.3281%;
+    width:7.4219%;
+    height:11.1328%;
+    z-index:4;
+    appearance:none;
+    border:0;
+    padding:0;
+    margin:0;
+    border-radius:50%;
+    background:transparent;
+    box-shadow:none;
+    cursor:pointer;
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    transform-origin:center;
+  }
+  #about-developer-close::before{
+    content:"";
+    position:absolute;
+    top:-22%;bottom:-22%;left:-72%;width:46%;
+    border-radius:50%;
+    background:linear-gradient(112deg,transparent 0%,rgba(255,255,255,.12) 26%,rgba(255,255,255,.74) 50%,rgba(255,255,255,.12) 72%,transparent 100%);
+    transform:skewX(-18deg);
+    opacity:0;
+    pointer-events:none;
+  }
+  #about-developer-close:hover,
+  #about-developer-close:focus-visible{
+    outline:none;
+    background:rgba(255,255,255,.035);
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.25),0 0 22px rgba(255,220,85,.24);
+    filter:brightness(1.07);
+  }
+  #about-developer-close:hover::before,
+  #about-developer-close:focus-visible::before{
+    opacity:1;
+    animation:tfHomeSoundSheen .72s ease-out;
+  }
+  #about-developer-close:active{transform:scale(.95);filter:brightness(1.10)}
+
+  @media (max-width:760px){
+    #about-developer-copy{
+      font-size:clamp(9px,1.45vw,12px);
+      line-height:1.44;
+    }
+  }
+</style>
+
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
+</style>
 </head>
 <body>
-  <main id="suite" aria-label="Teacher Francis Reading World">
+  <main id="suite" aria-label="WonderQuest: Reading World">
     <section id="home-screen" class="screen active" aria-label="Choose one of six reading apps">
-      <img id="home-art" alt="Teacher Francis Reading World with six reading app choices" src="./assets/37bc59310acbd4178b33.png" fetchpriority="high" decoding="async">
+      <img id="home-art" alt="WonderQuest: Reading World with six reading app choices" src="./assets/37bc59310acbd4178b33.png" fetchpriority="high" decoding="async">
       <div id="home-vfx" aria-hidden="true"></div>
       <nav id="home-controls" aria-label="Reading apps">
         <button class="launch-hotspot" data-app="awad" aria-label="Open AWAD — A Word A Day" title="AWAD — keyboard 1"></button>
@@ -809,6 +1000,8 @@ button,input,select,textarea,option{color-scheme:light!important}
         <button class="launch-hotspot" data-app="letter-slide" aria-label="Open Letter Slide" title="Letter Slide — keyboard 6"></button>
       </nav>
       <button id="globe-reset-hotspot" type="button" aria-label="Decorative globe"></button>
+
+      <button id="about-info-control" type="button" aria-label="About the Developer" title="About the Developer"></button>
       <!-- TF_HOME_FOREST_MUSIC_CONTROL_START -->
       <button id="home-music-control" type="button" aria-pressed="true" aria-label="Toggle Reading World background music">
         <span class="home-music-icon" aria-hidden="true">♫</span>
@@ -818,8 +1011,23 @@ button,input,select,textarea,option{color-scheme:light!important}
       <!-- TF_HOME_FOREST_MUSIC_CONTROL_END -->
     </section>
 
+
+
+    <section id="about-developer-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-label="About the Developer">
+      <div id="about-developer-card">
+        <img id="about-developer-art" src="./assets/wq-about-developer-panel-v1.png" alt="About the Developer magical parchment panel with a portrait of Teacher Francis Alex T. Mongcopa">
+        <div id="about-developer-copy" tabindex="0">
+          <p>Teacher Francis Alex T. Mongcopa is a Grade 1 teacher at the <strong>Schools Division Office – City of Malolos</strong> who is passionate about helping young learners discover the joy of reading. He believes that learning to read becomes more meaningful when children are given engaging, interactive, and enjoyable experiences.</p>
+          <p>Driven by his love for teaching and educational technology, he developed <strong>WonderQuest: Reading World</strong> to provide young readers with fun and accessible activities that strengthen foundational reading skills. The project was created not only for his own learners, but also as a resource that fellow teachers and parents can use to support children as they grow from early letter recognition to becoming confident readers.</p>
+          <p class="about-signature"><strong>Developed by Teacher Francis Alex T. Mongcopa</strong></p>
+          <p class="about-tagline"><em>From early letters to confident readers.</em></p>
+        </div>
+        <button id="about-developer-close" type="button" aria-label="Close About the Developer" title="Close"></button>
+      </div>
+    </section>
+
     <section id="player-screen" class="screen" aria-label="Selected reading app">
-      <iframe id="app-frame" title="Teacher Francis reading app" allow="autoplay *; fullscreen *" allowfullscreen webkitallowfullscreen></iframe>
+      <iframe id="app-frame" title="WonderQuest reading app" allow="autoplay *; fullscreen *" allowfullscreen webkitallowfullscreen></iframe>
       <button id="player-fullscreen" type="button" aria-label="Open Basa Tayo in fullscreen mode"><span class="icon" aria-hidden="true">⛶</span><span>Fullscreen</span></button>
       <div id="loading" role="status" aria-live="polite">
         <div class="loading-card">
@@ -839,9 +1047,9 @@ button,input,select,textarea,option{color-scheme:light!important}
     <div id="suite-status" class="sr-only" aria-live="polite"></div>
   </main>
 
-  <div id="startup-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Teacher Francis Reading World">
+  <div id="startup-overlay" role="dialog" aria-modal="true" aria-label="Welcome to WonderQuest: Reading World">
     <div class="startup-card">
-      <img src="./shared/startup-prompt-approved.png" alt="Welcome to Teacher Francis Reading World. Best viewed in landscape on bigger devices or desktop. Sounds or read-aloud may vary by device, especially in Filipino. Enjoy and have fun reading." fetchpriority="high" decoding="async">
+      <img src="./shared/startup-prompt-approved.png" alt="Welcome to WonderQuest: Reading World. Best viewed in landscape on bigger devices or desktop. Sounds or read-aloud may vary by device, especially in Filipino. Enjoy and have fun reading." fetchpriority="high" decoding="async">
       <label class="startup-check" aria-label="Do not show this startup message again"><input id="startup-hide" type="checkbox"><span class="startup-checkmark" aria-hidden="true">✓</span><span class="sr-only">Do not show this again</span></label>
       <button id="startup-continue" type="button" aria-label="Start Reading World"><span class="sr-only">Start Reading World</span></button>
     </div>
@@ -956,9 +1164,9 @@ button,input,select,textarea,option{color-scheme:light!important}
       frame.onload = null;
       frame.removeAttribute("srcdoc");
       frame.src = "about:blank";
-      frame.title = "Teacher Francis reading app";
+      frame.title = "WonderQuest reading app";
       setActiveScreen("home");
-      status.textContent = "Choose one of six Teacher Francis reading apps.";
+      status.textContent = "Choose one of six WonderQuest reading apps.";
       try{window.webkit?.messageHandlers?.nativeFullscreen?.postMessage('exit');}catch{}
       if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
       if (updateHistory) history.pushState({ home: true }, "", location.pathname + location.search);
@@ -1579,6 +1787,131 @@ button,input,select,textarea,option{color-scheme:light!important}
 </script>
 
 <!-- TF_W_PANTIG_FIX_V4_4_SUITE -->
+
+<script id="wq-about-developer-script">
+(() => {
+  const openButton = document.getElementById("about-info-control");
+  const overlay = document.getElementById("about-developer-overlay");
+  const closeButton = document.getElementById("about-developer-close");
+  const copy = document.getElementById("about-developer-copy");
+  if (!openButton || !overlay || !closeButton) return;
+
+  let previousFocus = null;
+
+  function openAbout() {
+    previousFocus = document.activeElement;
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    if (copy) copy.scrollTop = 0;
+    requestAnimationFrame(() => closeButton.focus({ preventScroll: true }));
+  }
+
+  function closeAbout() {
+    if (!overlay.classList.contains("open")) return;
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+    const target = previousFocus && typeof previousFocus.focus === "function" ? previousFocus : openButton;
+    requestAnimationFrame(() => target.focus({ preventScroll: true }));
+  }
+
+  openButton.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    openAbout();
+  });
+
+  closeButton.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    closeAbout();
+  });
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) closeAbout();
+  });
+
+  // Mouse wheels and two-finger trackpad gestures work anywhere over the
+  // open parchment, not only when the pointer is directly over the text.
+  overlay.addEventListener("wheel", event => {
+    if (!overlay.classList.contains("open") || !copy) return;
+    if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
+    const multiplier = event.deltaMode === 1 ? 28 : event.deltaMode === 2 ? copy.clientHeight : 1;
+    copy.scrollTop += event.deltaY * multiplier;
+    event.preventDefault();
+  }, { passive:false });
+
+  // Touch and pen users get native momentum scrolling. Explicit touch-action
+  // keeps vertical swipe gestures available inside installed PWAs as well.
+  if (copy) {
+    copy.style.touchAction = "pan-y pinch-zoom";
+
+    // Optional mouse drag scrolling for users who prefer click-and-drag.
+    let dragging = false;
+    let dragStartY = 0;
+    let dragStartScroll = 0;
+    copy.addEventListener("pointerdown", event => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      dragging = true;
+      dragStartY = event.clientY;
+      dragStartScroll = copy.scrollTop;
+      copy.setPointerCapture?.(event.pointerId);
+    });
+    copy.addEventListener("pointermove", event => {
+      if (!dragging || event.pointerType !== "mouse") return;
+      const delta = event.clientY - dragStartY;
+      if (Math.abs(delta) > 3) {
+        copy.scrollTop = dragStartScroll - delta;
+        event.preventDefault();
+      }
+    });
+    const endDrag = event => {
+      if (!dragging) return;
+      dragging = false;
+      try { copy.releasePointerCapture?.(event.pointerId); } catch {}
+    };
+    copy.addEventListener("pointerup", endDrag);
+    copy.addEventListener("pointercancel", endDrag);
+  }
+
+  document.addEventListener("keydown", event => {
+    if (!overlay.classList.contains("open")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeAbout();
+      return;
+    }
+
+    if (copy && ["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"," "].includes(event.key)) {
+      const active = document.activeElement;
+      if (active === copy || active === closeButton || active === overlay || active === document.body) {
+        const step = Math.max(32, copy.clientHeight * .12);
+        if (event.key === "ArrowDown") copy.scrollBy({ top:step, behavior:"smooth" });
+        if (event.key === "ArrowUp") copy.scrollBy({ top:-step, behavior:"smooth" });
+        if (event.key === "PageDown" || (event.key === " " && !event.shiftKey)) copy.scrollBy({ top:copy.clientHeight * .82, behavior:"smooth" });
+        if (event.key === "PageUp" || (event.key === " " && event.shiftKey)) copy.scrollBy({ top:-copy.clientHeight * .82, behavior:"smooth" });
+        if (event.key === "Home") copy.scrollTo({ top:0, behavior:"smooth" });
+        if (event.key === "End") copy.scrollTo({ top:copy.scrollHeight, behavior:"smooth" });
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (event.key === "Tab") {
+      const focusables = [closeButton, copy].filter(Boolean);
+      if (!focusables.length) return;
+      const current = focusables.indexOf(document.activeElement);
+      if (event.shiftKey && current <= 0) {
+        event.preventDefault();
+        focusables[focusables.length - 1].focus();
+      } else if (!event.shiftKey && current === focusables.length - 1) {
+        event.preventDefault();
+        focusables[0].focus();
+      }
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
 <!-- TF_MAC_BUILD_NATIVE_FULLSCREEN_XLSX_READY -->

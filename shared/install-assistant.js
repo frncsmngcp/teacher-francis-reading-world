@@ -396,7 +396,7 @@
     launcher.type = 'button';
     launcher.textContent = 'Install App';
     launcher.hidden = true;
-    launcher.setAttribute('aria-label', 'Install Teacher Francis Reading World');
+    launcher.setAttribute('aria-label', 'Install WonderQuest: Reading World');
     // Portal the launcher above the transformed suite. Mobile Safari can
     // visually paint a transformed child correctly while exposing an unreliable
     // touch hit region after landscape toolbar changes.

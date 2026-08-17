@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#0b7f85">
-  <title>Basa Tayo! — Filipino Reading Adventure</title>
+  <title>WonderQuest: Basa Tayo! — Filipino Reading Adventure</title>
   <style>@font-face{font-family:"Andika Basic";src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}</style>
   <style>:root{color-scheme:light;--ink:#522b12;--cream:#fff0ce;--teal:#07848d;--gold:#ffd33d;--green:#68ad2a;--red:#ef5f42;--purple:#713794}
 *{box-sizing:border-box}
@@ -20,9 +20,7 @@ button{cursor:pointer}
 .pixi-layer{z-index:0}.pixi-layer canvas{display:block}
 .screen{z-index:2}
 [hidden]{display:none!important}
-.art-hit{position:absolute;border:0;background:transparent;color:transparent;border-radius:28px;outline-offset:-6px}
-.art-hit:hover,.art-hit:focus-visible{box-shadow:0 0 0 6px #fff8,0 0 34px 14px #ffe952a8;animation:hitPulse 1s ease-in-out infinite alternate}
-@keyframes hitPulse{to{filter:brightness(1.15)}}
+.art-hit{position:absolute;border:0;background:transparent;color:transparent;border-radius:28px;outline-offset:-6px;overflow:hidden;clip-path:inset(0 round var(--hit-r,28px));transition:filter .16s ease}.art-hit::before,.art-hit::after{content:"";position:absolute;inset:0;border-radius:inherit;clip-path:inherit;pointer-events:none;opacity:0;transition:opacity .18s ease,transform .55s ease}.art-hit::before{background:linear-gradient(112deg,rgba(255,255,255,0) 16%,rgba(255,255,255,.34) 35%,rgba(255,255,255,.08) 49%,rgba(255,255,255,0) 63%);transform:translateX(-135%) skewX(-18deg)}.art-hit::after{box-shadow:inset 0 2px 0 rgba(255,255,255,.22),inset 0 -2px 0 rgba(87,50,10,.18)}.art-hit:hover,.art-hit:focus-visible,.art-hit:active{filter:brightness(1.035) saturate(1.025);animation:none}.art-hit:hover::before,.art-hit:focus-visible::before,.art-hit:active::before{opacity:1;transform:translateX(135%) skewX(-18deg)}.art-hit:hover::after,.art-hit:focus-visible::after,.art-hit:active::after{opacity:1}.hit-titik,.hit-pantig{--hit-r:42% 36% 40% 34% / 30% 34% 38% 36%}.hit-salita,.hit-pangungusap{--hit-r:38% 30% 40% 32% / 26% 34% 42% 34%}.hit-continue{--hit-r:999px}.hit-home,.hit-previous,.hit-next{--hit-r:40% 40% 42% 42% / 30% 30% 38% 38%}
 .home-letter-board{position:absolute;left:24.6%;top:25.6%;width:45.6%;height:20.2%;display:flex;flex-direction:column;align-items:center;padding:1.1% 2.2%}
 .home-letter-board h1{margin:0 0 .45%;font-size:clamp(9px,2.35cqw,40px);line-height:1;color:#51280f;text-shadow:0 2px #fff5cf,0 4px 2px #8f5b2440;font-weight:700}
 .letter-grid{width:100%;display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px 5px;place-items:center}
@@ -315,6 +313,13 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 <style id="tf-force-light-scheme">
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
+</style>
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
 </style>
 </head>
 <body>
@@ -1534,7 +1539,7 @@ document.addEventListener("pointerdown",()=>{w.music&&tfFarmPlay()},{once:!0,cap
     #teacher-francis-suite-home span { display:none !important; }
   }
 </style>
-<button id="teacher-francis-suite-home" type="button" aria-label="Return to all Teacher Francis reading apps" title="All Apps (Shift + Escape)">
+<button id="teacher-francis-suite-home" type="button" aria-label="Return to all WonderQuest reading adventures" title="All Apps (Shift + Escape)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
   <span>ALL APPS</span>
 </button>

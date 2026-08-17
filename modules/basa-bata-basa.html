@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
   <meta name="tf-bbb-single-layer-word-fix" content="v4.3">
-  <title>Basa, Bata, Basa! with Teacher Francis v6</title>
+  <title>WonderQuest: Basa, Bata, Basa! v6</title>
   <style>
     @font-face{font-family:Andika;src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}
     :root{--ink:#173d67;--blue:#1684d9;--pink:#f35f87;--green:#65c96a;--gold:#ffc936;--cream:#fff8e8;--shadow:0 12px 0 rgba(61,52,94,.18),0 18px 45px rgba(42,39,76,.28)}
@@ -23,9 +23,9 @@
     @keyframes selectedPulse{50%{box-shadow:0 0 0 9px #fff,0 0 0 18px #ffc92f,0 0 55px 30px rgba(255,207,50,.9)}}
     .home-progress{position:absolute;z-index:9;left:1316px;top:31px;width:177px;height:151px;display:grid;grid-template-rows:70px 70px;gap:14px;pointer-events:none}
     .home-progress div{display:flex;align-items:center;justify-content:center;padding-left:8px;font-size:31px;line-height:1;font-weight:1000;color:#173d67;text-shadow:0 2px 0 white}
-    .home .fil{left:337px;top:252px;width:440px;height:311px}.home .en{left:799px;top:252px;width:439px;height:311px}
-    .home .learn{left:322px;top:572px;width:324px;height:160px}.home .check{left:658px;top:572px;width:305px;height:160px}.home .play{left:974px;top:572px;width:285px;height:160px}
-    .home .word-list{left:209px;top:746px;width:151px;height:153px}.home .collection{left:369px;top:746px;width:141px;height:153px}.home .settings-btn{left:520px;top:746px;width:144px;height:153px}.home .voice{left:678px;top:746px;width:143px;height:153px}.home .auto{left:833px;top:746px;width:144px;height:153px}.home .music{left:991px;top:746px;width:142px;height:153px}.home .fullscreen{left:1144px;top:746px;width:137px;height:153px}
+    .home .fil{left:385px;top:250px;width:418px;height:313px}.home .en{left:808px;top:250px;width:431px;height:313px}
+    .home .learn{left:409px;top:570px;width:304px;height:162px}.home .check{left:707px;top:570px;width:276px;height:162px}.home .play{left:983px;top:570px;width:276px;height:162px}
+    .home .word-list{left:205px;top:742px;width:157px;height:157px}.home .collection{left:364px;top:742px;width:151px;height:157px}.home .settings-btn{left:519px;top:742px;width:151px;height:157px}.home .voice{left:674px;top:742px;width:151px;height:157px}.home .auto{left:829px;top:742px;width:151px;height:157px}.home .music{left:986px;top:742px;width:151px;height:157px}.home .fullscreen{left:1140px;top:742px;width:141px;height:157px}
     .control-dot{position:absolute;z-index:10;width:22px;height:22px;border:4px solid white;border-radius:50%;box-shadow:0 3px 6px rgba(0,0,0,.28);pointer-events:none}.control-dot.on{background:#4bd169}.control-dot.off{background:#e95668}#homeAutoDot{left:949px;top:754px}#homeMusicDot{left:1104px;top:754px}
     .sparkles{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}.sparkles i{position:absolute;width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 0 18px 8px #fff6a0;animation:twinkle var(--d) ease-in-out infinite;animation-delay:var(--delay)}@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.45)}50%{opacity:.95;transform:scale(1.25)}}
     .reader .home-btn{left:111px;top:22px;width:237px;height:106px}.reader .word-list-btn{left:362px;top:22px;width:260px;height:106px}.reader .voice-btn{left:964px;top:22px;width:207px;height:106px}.reader .auto-btn{left:1187px;top:22px;width:282px;height:106px}
@@ -223,11 +223,18 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
+</style>
 </head>
 <body>
 <div id="viewport"><main id="stage" aria-label="Basa, Bata, Basa sight-word app">
   <section id="home" class="screen active home" aria-label="Home screen">
-    <img class="bg" src="../assets/822462614eeb037d5aaa.webp" alt="Basa, Bata, Basa squishy studio">
+    <img class="bg" src="../assets/d352d548ca1c074d5766.png" alt="Basa, Bata, Basa squishy studio">
     <div id="homeSparkles" class="sparkles" aria-hidden="true"></div>
     <div class="home-progress"><div id="homeWords">0 / 400</div><div id="homeStars">0</div></div>
     <button class="hit fil" data-lang="fil" aria-label="Choose Filipino"></button><button class="hit en" data-lang="en" aria-label="Choose English"></button>
@@ -479,7 +486,7 @@ button,input,select,textarea,option{color-scheme:light!important}
     #teacher-francis-suite-home span { display:none !important; }
   }
 </style>
-<button id="teacher-francis-suite-home" type="button" aria-label="Return to all Teacher Francis reading apps" title="All Apps (Shift + Escape)">
+<button id="teacher-francis-suite-home" type="button" aria-label="Return to all WonderQuest reading adventures" title="All Apps (Shift + Escape)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
   <span>ALL APPS</span>
 </button>

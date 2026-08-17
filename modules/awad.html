@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
-<title>AWAD — A Word A Day with Teacher Francis</title>
+<title>WonderQuest: AWAD — A Word A Day</title>
 <link rel="preload" href="../assets/d6f963bddedd6b61549a.ttf" as="font" type="font/ttf" crossorigin>
 <style>
 @font-face{font-family:"TF Portable Andika";src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}
@@ -441,6 +441,13 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 <style id="tf-force-light-scheme">
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
+</style>
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
 </style>
 </head>
 <body class="dyslexic">
@@ -1329,7 +1336,7 @@ setTimeout(()=>{
     #teacher-francis-suite-home span { display:none !important; }
   }
 </style>
-<button id="teacher-francis-suite-home" type="button" aria-label="Return to all Teacher Francis reading apps" title="All Apps (Shift + Escape)">
+<button id="teacher-francis-suite-home" type="button" aria-label="Return to all WonderQuest reading adventures" title="All Apps (Shift + Escape)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
   <span>ALL APPS</span>
 </button>

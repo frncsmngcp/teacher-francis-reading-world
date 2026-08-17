@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
-<title>Kuwento Tayo with Teacher Francis</title>
+<title>WonderQuest: Kuwento Tayo</title>
 <link rel="preload" href="../assets/d6f963bddedd6b61549a.ttf" as="font" type="font/ttf" crossorigin>
 <style>
 @font-face{font-family:"TF Portable Andika";src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}
@@ -17,7 +17,7 @@ button,input,select{font:inherit}
 .stage{position:relative;aspect-ratio:16/9;width:min(var(--tf-usable-width,100vw),calc(var(--tf-usable-height,100vh) * 16/9));height:min(var(--tf-usable-height,100vh),calc(var(--tf-usable-width,100vw) * 9/16));overflow:hidden;background:#8fdcff;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
 .screen{position:absolute;inset:0;display:none;background-size:100% 100%;background-repeat:no-repeat}
 .screen.active{display:block}
-#home{background-image:url("../assets/kuwento/13cb35019492c37feeed.webp")}
+#home{background-image:url("../assets/kuwento/b0cff64624a0f794547c.webp")}
 #shelf{background-image:url("../assets/kuwento/51b6ef0d877cfd2636f9.webp")}
 #reader{background-image:url("../assets/kuwento/59090a09002ff643b1ca.webp")}
 .hotspot{position:absolute;border:0;background:transparent;cursor:pointer;z-index:8;border-radius:18px}
@@ -314,6 +314,13 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 <style id="tf-force-light-scheme">
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
+</style>
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
 </style>
 </head>
 <body>
@@ -738,7 +745,7 @@ if(document.fonts?.ready)document.fonts.ready.then(()=>{if(state.screen==='reade
     #teacher-francis-suite-home span { display:none !important; }
   }
 </style>
-<button id="teacher-francis-suite-home" type="button" aria-label="Return to all Teacher Francis reading apps" title="All Apps (Shift + Escape)">
+<button id="teacher-francis-suite-home" type="button" aria-label="Return to all WonderQuest reading adventures" title="All Apps (Shift + Escape)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
   <span>ALL APPS</span>
 </button>

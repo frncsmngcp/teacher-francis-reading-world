@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
-<title>Letter Slide with Teacher Francis</title>
+<title>WonderQuest: Letter Slide</title>
 <style>
 @font-face{font-family:"TF Portable Andika";src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}
 
@@ -17,7 +17,7 @@ body{touch-action:manipulation}
 #stage{position:absolute;left:50%;top:50%;width:1672px;height:1024px;transform-origin:50% 50%;}
 .screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .28s ease}
 .screen.active{opacity:1;pointer-events:auto}
-.home-inner{position:absolute;left:68px;top:0;width:1536px;height:1024px;background:url('../assets/04f995215c8b95633b39.png') center/cover no-repeat}
+.home-inner{position:absolute;left:68px;top:0;width:1536px;height:1024px;background:url('../assets/5db173593080c179efda.png') center/cover no-repeat}
 .play-inner{position:absolute;left:0;top:42px;width:1672px;height:941px;transform-origin:0 0;will-change:transform;transition:transform .62s cubic-bezier(.22,.78,.18,1);background:url('../assets/0ee3e0f352e730e650f4.png') center/cover no-repeat}
 .invis-btn{position:absolute;background:transparent;border:0;cursor:pointer;outline:none;overflow:hidden;isolation:isolate;transition:background .12s ease,box-shadow .12s ease,transform .12s ease,filter .12s ease}
 .invis-btn:focus-visible{box-shadow:0 0 0 4px rgba(255,255,255,.65),0 0 0 8px rgba(26,114,214,.4);border-radius:24px}
@@ -473,6 +473,13 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
+</style>
 </head>
 <body>
 <div id="app">
@@ -594,7 +601,7 @@ const PROGRESS_POINTS=[
 const SLIDE_PATH=[
   {x:376,y:312},{x:482,y:356},{x:596,y:409},{x:719,y:468},{x:851,y:531},{x:992,y:596},{x:1132,y:662},{x:1268,y:726}
 ];
-const KID_TOP={x:262,y:266,r:8};
+const KID_TOP={x:262,y:250,r:8};
 const TRAY={x1:348,y:847,x2:1260};
 
 const $=id=>document.getElementById(id);
@@ -641,9 +648,9 @@ function positionStaticElements(){
     homeHard:[399,565,342,224,34],
     homeCustom:[764,565,356,224,34],
     homeEditCustom:[1205,725,248,65,22],
-    homeSettings:[1173,17,91,91,46],
-    homeHome:[1290,17,91,91,46],
-    homeFull:[1407,17,91,91,46],
+    homeSettings:[1178,21,88,88,44],
+    homeHome:[1295,21,88,88,44],
+    homeFull:[1412,21,88,88,44],
 
     // Play background coordinates (1672 x 941)
     playSettings:[1333,13,85,86,44],
@@ -1323,7 +1330,7 @@ function setKid(index,instant=false){
     const nearEnd=index>=Math.max(units.length-1,1);
     p={
       x:up.x + (letters.length<=4?118:(nearEnd?92:104)),
-      y:Math.min(up.y + (nearEnd?96:88), 792),
+      y:Math.min(up.y + (nearEnd?84:76), 792),
       r:Math.max(7, Math.min(22, up.r-6))
     };
   }
@@ -1631,13 +1638,12 @@ function doStep(){
       console.warn('Reading-unit audio error:',e);
     }
 
-    // After the final sound/chunk, allow learners to see that unit first,
-    // then automatically present the completed word on the foreground layer.
+    // After the final sound/chunk, keep the last landed unit visible and wait
+    // for the learner's next action before revealing the whole word. This gives
+    // children time to blend the last word/chunk first across mouse, touch,
+    // trackpad, swipe, tap, and keyboard input.
     if(stepIndex>=units.length){
-      busy=true;
-      setTimeout(()=>{
-        completeWord();
-      },760);
+      busy=false;
     }
   }, 360);
 }
@@ -2030,7 +2036,7 @@ document.addEventListener('DOMContentLoaded' , ()=>{ positionStaticElements(); i
     #teacher-francis-suite-home span { display:none !important; }
   }
 </style>
-<button id="teacher-francis-suite-home" type="button" aria-label="Return to all Teacher Francis reading apps" title="All Apps (Shift + Escape)">
+<button id="teacher-francis-suite-home" type="button" aria-label="Return to all WonderQuest reading adventures" title="All Apps (Shift + Escape)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
   <span>ALL APPS</span>
 </button>

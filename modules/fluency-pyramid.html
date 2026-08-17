@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="color-scheme" content="only light">
 <meta name="supported-color-schemes" content="light">
-  <title>Fluency Pyramid with Teacher Francis</title>
+  <title>WonderQuest: Fluency Pyramid</title>
   <style>
     @font-face{font-family:Andika;src:url("../assets/d6f963bddedd6b61549a.ttf") format("truetype");font-display:swap}
     :root{--ink:#4c2d16;--teal:#087e86;--coral:#ef6b4b;--gold:#f7c64f;--purple:#6f4aa3;--stone:#f6d79b;--shadow:0 10px 0 rgba(92,53,22,.28),0 18px 34px rgba(18,62,69,.28)}
@@ -48,8 +48,7 @@
     .level-target.current:not(.keyboard){box-shadow:none;z-index:5}
     .level-target.current:not(.keyboard)::before{content:"★";position:absolute;left:50%;top:-18px;transform:translateX(-50%);color:#ffe14a;font-size:22px;text-shadow:0 2px 0 #8b551d,0 0 4px #fff;z-index:8}
     #levelInfo{position:absolute;left:570px;bottom:39px;width:395px;height:47px;border-radius:18px;background:rgba(47,26,13,.78);color:#fff7cf;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;letter-spacing:.2px;box-shadow:0 4px 0 rgba(0,0,0,.25);pointer-events:none}
-    #credit{position:absolute;left:525px;bottom:10px;width:485px;text-align:center;color:#fff4c7;font-size:16px;font-weight:700;text-shadow:0 2px 2px #3d260f}
-
+    
     /* Game */
     #gamePhoto{left:29px;top:28px;width:119px;height:119px;border:7px solid #fff1bf;box-shadow:0 5px 0 #9d652d;z-index:5}
     #gamePhoto .initials{font-size:40px}
@@ -452,12 +451,19 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 :root,html,body{color-scheme:only light!important}
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
+
+<style id="wq-hide-scrollbars-global">
+/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
+</style>
 </head>
 <body>
 <main id="app" aria-label="Fluency Pyramid reading application">
   <div id="stage">
     <section id="homeScreen" class="screen active" aria-label="Level selection">
-      <img class="art" src="../assets/28ac6dc14b0d05ae83a3.png" alt="">
+      <img class="art" src="../assets/ecd8143c83a5f40358be.png" alt="">
       <div id="homePhoto"><span class="initials">?</span></div>
       <select id="homeLearnerSelect" aria-label="Choose who climbs the pyramid"><option value="">Add a learner</option></select>
       <div id="homeLevelStat" class="home-stat">No level yet</div>
@@ -471,8 +477,7 @@ button,input,select,textarea,option{color-scheme:light!important}
       <button id="homeFullscreen" aria-label="Fullscreen">⛶</button>
       <div id="levelTargets" aria-label="100 selectable fluency levels"></div>
       <div id="levelInfo">Choose a climber, then choose a level</div>
-      <div id="credit">Developed by Sir Francis Alex T. Mongcopa</div>
-    </section>
+          </section>
 
     <section id="gameScreen" class="screen" aria-label="Fluency pyramid run">
       <img class="art" src="../assets/fbd5fd93237762087a19.png" alt="">
@@ -1042,7 +1047,7 @@ button,input,select,textarea,option{color-scheme:light!important}
     #teacher-francis-suite-home span { display:none !important; }
   }
 </style>
-<button id="teacher-francis-suite-home" type="button" aria-label="Return to all Teacher Francis reading apps" title="All Apps (Shift + Escape)">
+<button id="teacher-francis-suite-home" type="button" aria-label="Return to all WonderQuest reading adventures" title="All Apps (Shift + Escape)">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
   <span>ALL APPS</span>
 </button>
