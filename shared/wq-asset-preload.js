@@ -16,6 +16,8 @@
   if (!overlay || !progressFill || !percentValue || !statsDownloaded || !statsTotal || !statsEta || !currentTask || !statusText || !counterText || !retryButton || !noteText) return;
 
   const STORAGE_KEY = 'wonderquest-preload-complete::' + config.version;
+  const EVER_KEY = 'wonderquest-preload-ever-complete';
+  const COMPLETION_PREFIX = 'wonderquest-preload-complete::';
   const entries = config.entries.slice();
   const totalBytes = Math.max(1, Number(config.totalBytes) || entries.reduce((sum, entry) => sum + (Number(entry.size) || 0), 0));
   const absolute = url => new URL(url, location.href).href;
@@ -36,9 +38,26 @@
     catch (_) { return false; }
   }
 
+  function readEverDone() {
+    try {
+      if (localStorage.getItem(EVER_KEY) === 'done') return true;
+      // Migrate users who already completed v29/v30 before the generic marker existed.
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i) || '';
+        if (key.startsWith(COMPLETION_PREFIX) && localStorage.getItem(key) === 'done') {
+          localStorage.setItem(EVER_KEY, 'done');
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function markDone() {
-    try { localStorage.setItem(STORAGE_KEY, 'done'); }
-    catch (_) {}
+    try {
+      localStorage.setItem(STORAGE_KEY, 'done');
+      localStorage.setItem(EVER_KEY, 'done');
+    } catch (_) {}
   }
 
   function clearDone() {
@@ -163,40 +182,51 @@
     });
   }
 
-  async function preloadMissing(initialScan = null) {
+  async function preloadMissing(initialScan = null, { blocking = true } = {}) {
     if (running || preloadDone) return;
     running = true;
     errorState = false;
-    showOverlay();
+    if (blocking) showOverlay();
+    else {
+      document.body.classList.remove('wq-preload-active');
+      overlay.hidden = true;
+      overlay.setAttribute('aria-hidden', 'true');
+    }
     retryButton.hidden = true;
 
     try {
       let scan = initialScan;
       if (!scan) {
-        statusText.textContent = 'Checking the WonderQuest files already saved on this device…';
-        noteText.textContent = 'We will keep everything already downloaded and only fetch anything that is missing.';
-        renderReadyState(0, 0, 'Checking downloaded assets…', 'Checking…');
-        scan = await inspectCaches({ showProgress: true });
+        if (blocking) {
+          statusText.textContent = 'Checking the WonderQuest files already saved on this device…';
+          noteText.textContent = 'We will keep everything already downloaded and only fetch anything that is missing.';
+          renderReadyState(0, 0, 'Checking downloaded assets…', 'Checking…');
+        }
+        scan = await inspectCaches({ showProgress: blocking });
       }
 
       if (!scan.missing.length) {
         preloadDone = true;
         markDone();
-        renderReadyState(totalBytes, entries.length, 'All magical lessons are ready.', 'Ready');
-        statusText.textContent = 'Ready! All WonderQuest assets are already saved on this device.';
-        noteText.textContent = 'Nothing needs to be downloaded again.';
-        await delay(readStoredDone() ? 180 : 650);
-        hideOverlay();
+        if (blocking) {
+          renderReadyState(totalBytes, entries.length, 'All magical lessons are ready.', 'Ready');
+          statusText.textContent = 'Ready! All WonderQuest assets are already saved on this device.';
+          noteText.textContent = 'Nothing needs to be downloaded again.';
+          await delay(readStoredDone() ? 180 : 650);
+          hideOverlay();
+        }
         return;
       }
 
       clearDone();
-      statusText.textContent = scan.readyCount
-        ? 'Finishing setup: downloading only the WonderQuest files that are missing.'
-        : 'One-time setup: downloading WonderQuest assets before use.';
-      noteText.textContent = scan.readyCount
-        ? 'Your existing downloaded files are being kept. Please keep this open while the missing files finish.'
-        : 'Please keep this open while we prepare the adventures, stories, sounds, and activities.';
+      if (blocking) {
+        statusText.textContent = scan.readyCount
+          ? 'Finishing setup: downloading only the WonderQuest files that are missing.'
+          : 'One-time setup: downloading WonderQuest assets before use.';
+        noteText.textContent = scan.readyCount
+          ? 'Your existing downloaded files are being kept. Please keep this open while the missing files finish.'
+          : 'Please keep this open while we prepare the adventures, stories, sounds, and activities.';
+      }
 
       const state = {
         readyBytes: scan.readyBytes,
@@ -208,6 +238,7 @@
       };
 
       const updateDownloadUI = () => {
+        if (!blocking) return;
         let partialBytes = 0;
         for (const bytes of state.partialByUrl.values()) partialBytes += bytes;
         const displayedBytes = Math.max(0, Math.min(totalBytes, state.readyBytes + partialBytes));
@@ -295,9 +326,11 @@
 
       // The completion flag is never trusted by itself. Verify the real caches
       // once more before allowing the user into WonderQuest.
-      statusText.textContent = 'Verifying the completed WonderQuest download…';
-      noteText.textContent = 'Almost there — checking that every required file is really saved on this device.';
-      statsEta.textContent = 'Checking…';
+      if (blocking) {
+        statusText.textContent = 'Verifying the completed WonderQuest download…';
+        noteText.textContent = 'Almost there — checking that every required file is really saved on this device.';
+        statsEta.textContent = 'Checking…';
+      }
       const finalScan = await inspectCaches({ showProgress: false });
       if (finalScan.missing.length) {
         throw new Error(finalScan.missing.length + ' files are still missing from device storage');
@@ -305,22 +338,26 @@
 
       preloadDone = true;
       markDone();
-      renderReadyState(totalBytes, entries.length, 'All magical lessons are ready.', 'Ready');
-      statusText.textContent = 'Ready! WonderQuest has finished downloading its assets.';
-      noteText.textContent = 'You can now explore the app with the full artwork, sounds, and stories ready to go.';
-      await delay(900);
-      hideOverlay();
+      if (blocking) {
+        renderReadyState(totalBytes, entries.length, 'All magical lessons are ready.', 'Ready');
+        statusText.textContent = 'Ready! WonderQuest has finished downloading its assets.';
+        noteText.textContent = 'You can now explore the app with the full artwork, sounds, and stories ready to go.';
+        await delay(900);
+        hideOverlay();
+      }
     } catch (error) {
       console.error('WonderQuest preload failed:', error);
       clearDone();
       errorState = true;
-      statusText.textContent = 'We could not finish downloading WonderQuest yet.';
-      noteText.textContent = navigator.onLine
-        ? 'Please try again. If this keeps happening, the device may need more free storage for the offline library.'
-        : 'Please connect to the internet, then try again. The app needs to finish downloading its assets first.';
-      currentTask.textContent = error && error.message ? error.message : 'Download interrupted.';
-      statsEta.textContent = 'Paused';
-      retryButton.hidden = false;
+      if (blocking) {
+        statusText.textContent = 'We could not finish downloading WonderQuest yet.';
+        noteText.textContent = navigator.onLine
+          ? 'Please try again. If this keeps happening, the device may need more free storage for the offline library.'
+          : 'Please connect to the internet, then try again. The app needs to finish downloading its assets first.';
+        currentTask.textContent = error && error.message ? error.message : 'Download interrupted.';
+        statsEta.textContent = 'Paused';
+        retryButton.hidden = false;
+      }
     } finally {
       running = false;
     }
@@ -331,20 +368,41 @@
   });
 
   window.addEventListener('online', () => {
-    if (errorState && !running && !preloadDone) preloadMissing();
+    if (errorState && !running && !preloadDone) preloadMissing(null, { blocking: !readEverDone() });
   });
 
   async function boot() {
     if (running || preloadDone) return;
-    const hadCompletionMarker = readStoredDone();
+    const returningUser = readEverDone();
+
+    // After the first successful setup, cache verification and any repairs run
+    // quietly in the background. The home screen is immediately usable.
+    if (returningUser) {
+      document.documentElement.classList.add('wq-preload-returning');
+      document.body.classList.remove('wq-preload-active');
+      overlay.hidden = true;
+      overlay.setAttribute('aria-hidden', 'true');
+      try {
+        const scan = await inspectCaches({ showProgress: false });
+        if (!scan.missing.length) {
+          preloadDone = true;
+          markDone();
+          return;
+        }
+        await preloadMissing(scan, { blocking: false });
+      } catch (error) {
+        console.warn('WonderQuest background cache check will retry later:', error);
+        errorState = true;
+      }
+      return;
+    }
+
+    // First-ever setup remains intentionally blocking so the complete offline
+    // library is present before the learner starts using WonderQuest.
     showOverlay();
     retryButton.hidden = true;
-    statusText.textContent = hadCompletionMarker
-      ? 'Checking that your WonderQuest download is still complete…'
-      : 'Checking the WonderQuest files already saved on this device…';
-    noteText.textContent = hadCompletionMarker
-      ? 'This quick check protects against browser cleanup or storage changes. Only missing files will be downloaded.'
-      : 'Anything already downloaded will be kept, so interrupted setup can safely resume.';
+    statusText.textContent = 'Checking the WonderQuest files already saved on this device…';
+    noteText.textContent = 'Anything already downloaded will be kept, so interrupted setup can safely resume.';
     renderReadyState(0, 0, 'Checking downloaded assets…', 'Checking…');
 
     try {
@@ -355,11 +413,11 @@
         renderReadyState(totalBytes, entries.length, 'All magical lessons are ready.', 'Ready');
         statusText.textContent = 'Ready! All WonderQuest assets are already saved on this device.';
         noteText.textContent = 'Nothing needs to be downloaded again.';
-        await delay(hadCompletionMarker ? 180 : 650);
+        await delay(650);
         hideOverlay();
         return;
       }
-      await preloadMissing(scan);
+      await preloadMissing(scan, { blocking: true });
     } catch (error) {
       console.error('WonderQuest cache verification failed:', error);
       clearDone();

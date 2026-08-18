@@ -7,6 +7,21 @@
 <meta name="supported-color-schemes" content="light">
   <meta name="theme-color" content="#083e47">
   <title>WonderQuest: Reading World</title>
+  <script id="wq-preload-early-state">
+    (() => {
+      try {
+        const ever = localStorage.getItem('wonderquest-preload-ever-complete') === 'done';
+        let prior = ever;
+        if (!prior) {
+          for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i) || '';
+            if (key.startsWith('wonderquest-preload-complete::') && localStorage.getItem(key) === 'done') { prior = true; break; }
+          }
+        }
+        if (prior) document.documentElement.classList.add('wq-preload-returning');
+      } catch (_) {}
+    })();
+  </script>
   <style>
     :root {
       color-scheme: only light;
@@ -981,9 +996,10 @@ button,input,select,textarea,option{color-scheme:light!important}
   <link rel="stylesheet" href="./shared/wq-scrollbars.css">
 
 <style id="wq-asset-preload-style">
-  body.wq-preload-active #suite{pointer-events:none;user-select:none;filter:saturate(.9) blur(1.8px) brightness(.92)}
+  html:not(.wq-preload-returning) body.wq-preload-active #suite{pointer-events:none;user-select:none;filter:saturate(.9) blur(1.8px) brightness(.92)}
   #wq-asset-preload-overlay{position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:clamp(16px,3vw,32px);background:radial-gradient(circle at 20% 20%,rgba(255,213,91,.18),transparent 28%),radial-gradient(circle at 82% 12%,rgba(123,201,255,.17),transparent 26%),linear-gradient(180deg,rgba(8,22,44,.82),rgba(12,20,45,.92));backdrop-filter:blur(16px) saturate(1.05);-webkit-backdrop-filter:blur(16px) saturate(1.05);transition:opacity .35s ease,visibility .35s ease}
   #wq-asset-preload-overlay[hidden]{display:none !important}
+  html.wq-preload-returning #wq-asset-preload-overlay{display:none !important}
   #wq-asset-preload-overlay.is-complete{opacity:0;visibility:hidden}
   .wq-preload-card{position:relative;width:min(92vw,760px);border-radius:30px;padding:clamp(22px,3vw,34px);color:#fff;background:linear-gradient(150deg,rgba(37,20,78,.97),rgba(7,59,102,.95));border:2px solid rgba(242,192,87,.9);box-shadow:0 28px 72px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.24),0 0 0 5px rgba(97,58,16,.25);overflow:hidden}
   .wq-preload-card::before{content:"";position:absolute;inset:auto auto -18% -10%;width:34%;height:52%;background:radial-gradient(circle,rgba(255,234,154,.28),transparent 68%);pointer-events:none}
