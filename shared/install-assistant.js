@@ -16,7 +16,36 @@
   let lastInstallCheckAt = 0;
   let iosCoach = null;
   let iosCoachOpen = false;
+  let videoGuide = null;
+  let videoGuideOpen = false;
   const INSTALL_RECHECK_MS = 10000;
+
+  const INSTALL_TUTORIALS = {
+    android: {
+      label: 'Android',
+      title: 'Install on Android',
+      duration: 'About 1 minute',
+      src: './shared/tutorials/android-install-guide-v1.mp4',
+      poster: './shared/tutorials/android-install-poster-v1.jpg',
+      note: 'Follow along for Android phones and tablets. Browser menu labels can vary slightly.'
+    },
+    ios: {
+      label: 'iPhone / iPad',
+      title: 'Install on iPhone or iPad',
+      duration: 'About 1 minute',
+      src: './shared/tutorials/ios-install-guide-v1.mp4',
+      poster: './shared/tutorials/ios-install-poster-v1.jpg',
+      note: 'Follow the Safari steps for adding WonderQuest to the Home Screen.'
+    },
+    desktop: {
+      label: 'PC / Mac',
+      title: 'Install on PC or Mac',
+      duration: 'About 35 seconds',
+      src: './shared/tutorials/desktop-mac-install-guide-v1.mp4',
+      poster: './shared/tutorials/desktop-mac-install-poster-v1.jpg',
+      note: 'Follow along for desktop and laptop installation on supported browsers.'
+    }
+  };
 
   const isStandalone = () => {
     try {
@@ -232,6 +261,37 @@
         .tf-install-icon{width:48px;height:48px;margin-bottom:6px;font-size:25px;border-radius:16px}.tf-install-title{font-size:25px}.tf-install-body{font-size:13px;margin:8px auto}.tf-install-steps{grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}.tf-install-steps li{grid-template-columns:26px 1fr;padding:8px;font-size:11px}.tf-install-steps li::before{width:24px;height:24px}.tf-install-actions{margin-top:10px}.tf-install-actions button{min-height:44px}.tf-install-tip{font-size:11px;padding:7px}
       }
 
+      .tf-install-video-help{position:relative;margin:14px 0 0;padding:12px 13px;border-radius:16px;background:linear-gradient(145deg,rgba(91,49,140,.10),rgba(35,93,135,.10));border:1px solid rgba(101,57,145,.20)}
+      .tf-install-video-help-copy{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;text-align:center;color:#5a3c6b;font:800 12px/1.3 system-ui}
+      .tf-install-video-help-copy::before{content:"▶";display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#7540a8;color:#fff4c5;font-size:10px;box-shadow:0 3px 0 #492365}
+      #tf-install-video-guide{width:100%;margin-top:9px;min-height:46px;border:2px solid #6c3598;border-radius:15px;padding:9px 12px;background:linear-gradient(180deg,#9660c4,#6b3696);color:#fff8df;box-shadow:0 4px 0 #47235f;font:900 13px/1.15 system-ui;cursor:pointer;touch-action:manipulation}
+      #tf-install-video-guide small{display:block;margin-top:3px;color:#f3e4ff;font:750 10px/1.15 system-ui;letter-spacing:.02em}
+      #tf-install-video-guide:active{transform:translateY(2px);box-shadow:0 2px 0 #47235f}
+
+      #tf-install-video-modal{position:fixed;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:13150;display:none;place-items:center;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:rgba(3,13,28,.82);backdrop-filter:blur(14px) saturate(.95);-webkit-backdrop-filter:blur(14px) saturate(.95);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+      #tf-install-video-modal.open{display:grid}
+      .tf-video-guide-card{position:relative;width:min(calc(var(--tf-usable-width,100vw) - 28px),860px);max-height:calc(var(--tf-usable-height,100vh) - 28px);overflow:auto;overscroll-behavior:contain;padding:clamp(18px,3vw,28px);border-radius:28px;border:2px solid rgba(255,226,126,.96);background:linear-gradient(155deg,rgba(52,26,101,.99),rgba(17,57,100,.99));box-shadow:0 30px 90px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.26),0 0 0 5px rgba(103,63,17,.25);color:#fff;-webkit-overflow-scrolling:touch}
+      .tf-video-guide-card::before{content:"";position:absolute;left:-8%;right:-8%;top:-105px;height:210px;background:radial-gradient(circle,rgba(255,214,78,.34),rgba(255,214,78,0) 68%);pointer-events:none}
+      .tf-video-guide-close{position:absolute;right:12px;top:12px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font:900 24px/1 system-ui;cursor:pointer;z-index:3}
+      .tf-video-guide-kicker{position:relative;margin:1px 50px 7px;text-align:center;color:#ffe48b;font:950 11px/1.2 system-ui;letter-spacing:.13em}
+      .tf-video-guide-title{position:relative;margin:0;text-align:center;color:#fff7d8;font:950 clamp(25px,4vw,36px)/1.05 system-ui}
+      .tf-video-guide-intro{position:relative;margin:9px auto 15px;max-width:610px;text-align:center;color:#e7e5fb;font:700 13px/1.4 system-ui}
+      .tf-video-tabs{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 auto 14px;max-width:650px}
+      .tf-video-tab{min-height:46px;border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:8px 9px;background:rgba(255,255,255,.10);color:#fff3cc;font:900 12px/1.15 system-ui;cursor:pointer;touch-action:manipulation;transition:transform .15s ease,background .15s ease,box-shadow .15s ease}
+      .tf-video-tab:hover,.tf-video-tab:focus-visible{outline:none;background:rgba(255,255,255,.16)}
+      .tf-video-tab[aria-selected="true"]{color:#4e2a0b;background:linear-gradient(180deg,#ffe88b,#f0b33a);border-color:#ffe99e;box-shadow:0 4px 0 #96651e,inset 0 1px 0 rgba(255,255,255,.55);transform:translateY(-1px)}
+      .tf-video-stage{position:relative;margin:0 auto;max-width:760px;border-radius:20px;padding:5px;background:linear-gradient(145deg,#ffe695,#b87925 48%,#ffe8a8);box-shadow:0 16px 38px rgba(0,0,0,.34),0 0 0 2px rgba(65,28,92,.78);overflow:hidden}
+      #tf-install-video-player{display:block;width:100%;aspect-ratio:16/9;border-radius:15px;background:#07111e;object-fit:contain}
+      .tf-video-guide-meta{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:13px auto 0;max-width:760px}
+      .tf-video-guide-copy{min-width:0}
+      .tf-video-guide-name{display:block;color:#fff5cf;font:900 15px/1.25 system-ui}
+      .tf-video-guide-note{display:block;margin-top:4px;color:#dce9ff;font:700 12px/1.35 system-ui}
+      .tf-video-guide-duration{flex:0 0 auto;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.16);color:#ffe7a5;font:850 11px/1 system-ui;white-space:nowrap}
+      .tf-video-guide-actions{display:flex;justify-content:center;margin-top:16px}
+      #tf-video-guide-back{min-height:44px;border:2px solid #ffe38c;border-radius:14px;padding:10px 18px;background:#fff3c4;color:#58306e;box-shadow:0 4px 0 #b3872e;font:900 13px/1.1 system-ui;cursor:pointer}
+      @media(max-width:560px){.tf-video-guide-card{padding:19px 13px 16px;border-radius:23px}.tf-video-tabs{gap:6px}.tf-video-tab{min-height:44px;padding:7px 5px;font-size:11px}.tf-video-guide-meta{display:block}.tf-video-guide-duration{display:inline-block;margin-top:8px}.tf-install-video-help{padding:10px}.tf-install-video-help-copy{font-size:11px}}
+      @media(max-height:600px) and (orientation:landscape){.tf-video-guide-card{width:min(calc(var(--tf-usable-width,100vw) - 24px),820px);padding:12px 16px}.tf-video-guide-title{font-size:24px}.tf-video-guide-intro{font-size:11px;margin:5px auto 8px}.tf-video-tabs{margin-bottom:8px}.tf-video-tab{min-height:38px}.tf-video-stage{max-width:610px}.tf-video-guide-meta{max-width:610px;margin-top:7px}.tf-video-guide-note{font-size:10px}.tf-video-guide-actions{margin-top:8px}#tf-video-guide-back{min-height:38px}}
+
       #tf-ios-install-coach{position:fixed;left:0;top:0;width:var(--tf-usable-width,100vw);height:var(--tf-usable-height,100vh);z-index:13050;display:none;pointer-events:none;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
       #tf-ios-install-coach.open{display:block}
       .tf-ios-coach-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,20,35,.28),rgba(7,20,35,.58));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
@@ -266,6 +326,121 @@
       @media(max-height:600px) and (orientation:landscape){.tf-ios-coach-card{width:min(calc(var(--tf-usable-width,100vw) * .70),520px);max-height:calc(var(--tf-usable-height,100vh) - 28px);top:50%;padding:15px}.tf-ios-coach-title{font-size:24px}.tf-ios-coach-intro{font-size:11px;margin:6px auto}.tf-ios-coach-steps{grid-template-columns:repeat(3,1fr);gap:6px}.tf-ios-coach-step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:7px;font-size:10px}.tf-ios-coach-number{width:24px;height:24px}.tf-ios-coach-symbol{width:34px;height:34px}.tf-ios-coach-note{font-size:10px;margin-top:7px}.tf-ios-coach-actions{margin-top:8px}.tf-ios-coach-actions button{min-height:44px}.tf-ios-target{font-size:10px}}
     `;
     document.head.appendChild(style);
+  }
+
+  function detectedTutorialCategory() {
+    if (isIOS) return 'ios';
+    if (isAndroid) return 'android';
+    return 'desktop';
+  }
+
+  function selectVideoTutorial(category, { autoplay = false } = {}) {
+    const guide = ensureVideoGuide();
+    const selected = INSTALL_TUTORIALS[category] ? category : detectedTutorialCategory();
+    const data = INSTALL_TUTORIALS[selected];
+    const player = guide.querySelector('#tf-install-video-player');
+    const title = guide.querySelector('#tf-video-guide-name');
+    const note = guide.querySelector('#tf-video-guide-note');
+    const duration = guide.querySelector('#tf-video-guide-duration');
+
+    guide.querySelectorAll('.tf-video-tab').forEach(button => {
+      const active = button.dataset.tutorial === selected;
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+      button.tabIndex = active ? 0 : -1;
+    });
+
+    if (player.dataset.tutorial !== selected) {
+      try { player.pause(); } catch (_) {}
+      player.src = data.src;
+      player.poster = data.poster;
+      player.dataset.tutorial = selected;
+      player.load();
+    }
+    title.textContent = data.title;
+    note.textContent = data.note;
+    duration.textContent = data.duration;
+    try { window.TFAnalytics?.track('install_video_category', { install_video_platform: selected }); } catch (_) {}
+    if (autoplay) {
+      const promise = player.play();
+      if (promise?.catch) promise.catch(() => {});
+    }
+  }
+
+  function ensureVideoGuide() {
+    if (videoGuide) return videoGuide;
+    injectStyle();
+    videoGuide = document.createElement('div');
+    videoGuide.id = 'tf-install-video-modal';
+    videoGuide.setAttribute('role', 'dialog');
+    videoGuide.setAttribute('aria-modal', 'true');
+    videoGuide.setAttribute('aria-labelledby', 'tf-video-guide-title');
+    videoGuide.innerHTML = `
+      <section class="tf-video-guide-card">
+        <button class="tf-video-guide-close" type="button" aria-label="Close visual installation guide">×</button>
+        <div class="tf-video-guide-kicker">WONDERQUEST • VISUAL INSTALL GUIDE</div>
+        <h2 class="tf-video-guide-title" id="tf-video-guide-title">See exactly how to install it</h2>
+        <p class="tf-video-guide-intro">Choose your device, press play, and follow the short step-by-step video.</p>
+        <div class="tf-video-tabs" role="tablist" aria-label="Choose installation video">
+          <button class="tf-video-tab" type="button" role="tab" data-tutorial="android">Android</button>
+          <button class="tf-video-tab" type="button" role="tab" data-tutorial="ios">iPhone / iPad</button>
+          <button class="tf-video-tab" type="button" role="tab" data-tutorial="desktop">PC / Mac</button>
+        </div>
+        <div class="tf-video-stage">
+          <video id="tf-install-video-player" controls playsinline preload="metadata" aria-label="WonderQuest installation video"></video>
+        </div>
+        <div class="tf-video-guide-meta">
+          <div class="tf-video-guide-copy">
+            <strong class="tf-video-guide-name" id="tf-video-guide-name"></strong>
+            <span class="tf-video-guide-note" id="tf-video-guide-note"></span>
+          </div>
+          <span class="tf-video-guide-duration" id="tf-video-guide-duration"></span>
+        </div>
+        <div class="tf-video-guide-actions">
+          <button id="tf-video-guide-back" type="button">Back to install steps</button>
+        </div>
+      </section>`;
+    document.body.appendChild(videoGuide);
+
+    videoGuide.querySelectorAll('.tf-video-tab').forEach(button => {
+      button.addEventListener('click', () => selectVideoTutorial(button.dataset.tutorial));
+      button.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+        const tabs = Array.from(videoGuide.querySelectorAll('.tf-video-tab'));
+        const current = tabs.indexOf(button);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const next = tabs[(current + direction + tabs.length) % tabs.length];
+        event.preventDefault();
+        next.focus();
+        selectVideoTutorial(next.dataset.tutorial);
+      });
+    });
+    videoGuide.querySelector('.tf-video-guide-close').addEventListener('click', stopVideoGuide);
+    videoGuide.querySelector('#tf-video-guide-back').addEventListener('click', stopVideoGuide);
+    videoGuide.addEventListener('pointerdown', event => {
+      if (event.target === videoGuide) stopVideoGuide();
+    });
+    selectVideoTutorial(detectedTutorialCategory());
+    return videoGuide;
+  }
+
+  function startVideoGuide() {
+    ensureVideoGuide();
+    videoGuideOpen = true;
+    videoGuide.classList.add('open');
+    selectVideoTutorial(detectedTutorialCategory());
+    try { window.TFAnalytics?.track('install_video_guide_open', { install_video_platform: detectedTutorialCategory() }); } catch (_) {}
+    try { window.tfApplySafeViewport?.(); } catch (_) {}
+    setTimeout(() => {
+      try { videoGuide.querySelector('.tf-video-tab[aria-selected="true"]')?.focus({ preventScroll: true }); } catch (_) {}
+    }, 30);
+  }
+
+  function stopVideoGuide() {
+    if (!videoGuide) return;
+    videoGuideOpen = false;
+    videoGuide.classList.remove('open');
+    try { videoGuide.querySelector('#tf-install-video-player')?.pause(); } catch (_) {}
+    try { modal?.querySelector('#tf-install-video-guide')?.focus({ preventScroll: true }); } catch (_) {}
   }
 
   function ensureIOSCoach() {
@@ -416,6 +591,10 @@
         <p class="tf-install-body" id="tf-install-body"></p>
         <ol class="tf-install-steps" id="tf-install-steps"></ol>
         <div class="tf-install-tip" id="tf-install-tip" hidden></div>
+        <div class="tf-install-video-help">
+          <div class="tf-install-video-help-copy">Still not sure? Watch the installation from start to finish.</div>
+          <button id="tf-install-video-guide" type="button">Watch Visual Installation Guide<small>Android • iPhone / iPad • PC / Mac</small></button>
+        </div>
         <div class="tf-install-actions">
           <button id="tf-install-later" type="button">Maybe later</button>
           <button id="tf-install-action" type="button"></button>
@@ -480,11 +659,17 @@
     positionLauncher();
     modal.querySelector('.tf-install-close').addEventListener('click', () => closeModal(true));
     modal.querySelector('#tf-install-later').addEventListener('click', () => closeModal(true));
+    modal.querySelector('#tf-install-video-guide').addEventListener('click', startVideoGuide);
     modal.addEventListener('pointerdown', event => {
       if (event.target === modal) closeModal(true);
     });
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && modal.classList.contains('open')) closeModal(true);
+      if (event.key !== 'Escape') return;
+      if (videoGuideOpen) {
+        stopVideoGuide();
+        return;
+      }
+      if (modal.classList.contains('open')) closeModal(true);
     });
     const primaryAction = modal.querySelector('#tf-install-action');
     let primaryActivatedAt = 0;
@@ -533,6 +718,7 @@
 
   function closeModal(remember = false) {
     if (!modal) return;
+    if (videoGuideOpen) stopVideoGuide();
     modal.classList.remove('open');
     if (remember) rememberDismissal();
     try { launcher?.focus({ preventScroll: true }); } catch (_) {}
@@ -576,6 +762,7 @@
     syncLauncherVisibility();
     if (installedDetected) {
       modal?.classList.remove('open');
+      if (videoGuideOpen) stopVideoGuide();
       if (iosCoachOpen) stopIOSCoach(false);
     }
   }
@@ -693,19 +880,23 @@
   });
   window.addEventListener('resize', () => {
     positionLauncher();
-    if (iosCoachOpen) { try { window.tfApplySafeViewport?.(); } catch (_) {} }
+    if (iosCoachOpen || videoGuideOpen) { try { window.tfApplySafeViewport?.(); } catch (_) {} }
   });
   window.addEventListener('orientationchange', () => {
     positionLauncher();
     setTimeout(positionLauncher, 100);
     setTimeout(positionLauncher, 420);
-    if (iosCoachOpen) setTimeout(() => { try { window.tfApplySafeViewport?.(); } catch (_) {} }, 80);
+    if (iosCoachOpen || videoGuideOpen) setTimeout(() => { try { window.tfApplySafeViewport?.(); } catch (_) {} }, 80);
   });
   window.addEventListener('tfviewportchange', () => {
     positionLauncher();
     if (iosCoachOpen && iosCoach) {
       iosCoach.style.width = 'var(--tf-usable-width,100vw)';
       iosCoach.style.height = 'var(--tf-usable-height,100vh)';
+    }
+    if (videoGuideOpen && videoGuide) {
+      videoGuide.style.width = 'var(--tf-usable-width,100vw)';
+      videoGuide.style.height = 'var(--tf-usable-height,100vh)';
     }
   });
 
