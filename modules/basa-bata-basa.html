@@ -118,14 +118,12 @@
     max-width:720px!important;
     max-height:none!important;
     overflow:hidden!important;
-    scrollbar-width:none!important;
+    
     padding:clamp(18px,2.4vh,26px) clamp(20px,2.7vw,30px) clamp(18px,2.2vh,24px)!important;
     border-radius:28px!important;
     background:linear-gradient(155deg,#3a2372 0%,#251653 50%,#17113a 100%)!important;
     box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 5px rgba(101,72,164,.20)!important;
-  }
-  .tf-dialog-card::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
-  .tf-dialog-card::before,
+  }.tf-dialog-card::before,
   .tf-dialog-card::after,
   .tf-dialog-sparkles{display:none!important}
   .tf-dialog-top{
@@ -224,12 +222,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
 
-<style id="wq-hide-scrollbars-global">
-/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
-*{scrollbar-width:none!important;-ms-overflow-style:none!important}
-*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
-*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
-</style>
+  <link rel="stylesheet" href="../shared/wq-scrollbars.css">
 </head>
 <body>
 <div id="viewport"><main id="stage" aria-label="Basa, Bata, Basa sight-word app">
@@ -388,7 +381,7 @@ button,input,select,textarea,option{color-scheme:light!important}
   function hideToast(){const t=$('#toast');clearTimeout(t._timer);t.classList.remove('show');t.textContent=''}
   function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(hideToast,2400)}
   function fit(){const root=$('#viewport'),vp=window.tfUsableViewport?.()||{width:innerWidth,height:innerHeight},w=root?.clientWidth||vp.width,h=root?.clientHeight||vp.height,s=Math.min(w/1536,h/1024),x=(w-1536*s)/2,y=(h-1024*s)/2;$('#stage').style.transform=`translate(${x}px,${y}px) scale(${s})`}
-  async function fullscreen(){try{let h=window.webkit?.messageHandlers?.nativeFullscreen||window.top?.webkit?.messageHandlers?.nativeFullscreen;if(h){h.postMessage('toggle');return}}catch{}try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){toast('Fullscreen is not available here.')}fit()}
+  async function fullscreen(){try{await window.tfTogglePortableFullscreen?.()}catch(e){toast('Fullscreen is not available here.')}fit()}
   async function resetReadingProgress(){if(await tfConfirm('Reset all reading progress, stars, streaks, and rare-squishy milestones? Your settings and custom word lists will be kept.',{title:'Reset Reading Progress?',icon:'↻',tone:'danger',confirmText:'Reset Progress'})){const settings=state.settings,selectedLang=state.selectedLang;state=fresh();state.settings=settings;state.selectedLang=selectedLang;index=0;save();closeModal('settingsModal');renderCollection();renderHome();if(screen==='reader')renderReader();toast('Reading progress reset.')}}
   function resetAll(){resetReadingProgress()}
   function makeSparkles(){const layer=$('#homeSparkles'),spots=[[300,205],[1240,210],[301,690],[1288,680],[464,931],[1054,930],[74,833],[1464,798],[732,230],[783,925],[1405,318],[279,342]];spots.forEach((p,i)=>{const s=document.createElement('i');s.style.left=p[0]+'px';s.style.top=p[1]+'px';s.style.setProperty('--d',(1.5+(i%4)*.4)+'s');s.style.setProperty('--delay',(-i*.27)+'s');layer.append(s)})}

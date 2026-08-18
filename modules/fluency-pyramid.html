@@ -351,14 +351,12 @@
     max-width:720px!important;
     max-height:none!important;
     overflow:hidden!important;
-    scrollbar-width:none!important;
+    
     padding:clamp(18px,2.4vh,26px) clamp(20px,2.7vw,30px) clamp(18px,2.2vh,24px)!important;
     border-radius:28px!important;
     background:linear-gradient(155deg,#3a2372 0%,#251653 50%,#17113a 100%)!important;
     box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 5px rgba(101,72,164,.20)!important;
-  }
-  .tf-dialog-card::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
-  .tf-dialog-card::before,
+  }.tf-dialog-card::before,
   .tf-dialog-card::after,
   .tf-dialog-sparkles{display:none!important}
   .tf-dialog-top{
@@ -452,12 +450,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
 
-<style id="wq-hide-scrollbars-global">
-/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
-*{scrollbar-width:none!important;-ms-overflow-style:none!important}
-*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
-*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
-</style>
+  <link rel="stylesheet" href="../shared/wq-scrollbars.css">
 </head>
 <body>
 <main id="app" aria-label="Fluency Pyramid reading application">
@@ -780,7 +773,7 @@ button,input,select,textarea,option{color-scheme:light!important}
   function toggleSound(){state.sound=!state.sound;if(!state.sound)speechSynthesis.cancel();save();renderHome();toast(state.sound?'Read-aloud is on.':'Read-aloud is off.')}
   function populateVoices(){if(!('speechSynthesis'in window))return;const select=$('voiceSelect'),voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)).sort((a,b)=>`${a.lang} ${a.name}`.localeCompare(`${b.lang} ${b.name}`)),current=state.voiceURI||'';select.innerHTML='<option value="">Automatic English</option>'+voices.map(v=>`<option value="${escapeHtml(v.voiceURI)}">${escapeHtml(v.name)} · ${escapeHtml(v.lang)}</option>`).join('');if(voices.some(v=>v.voiceURI===current))select.value=current;else{state.voiceURI='';select.value=''}}
   async function resetProgress(){if(!await tfConfirm('Reset the WHOLE CLASS progress? This will clear all completed levels, relics, badges, medals, and perfect finishes for the class. Learner names and photos will stay.',{title:'Reset Whole-Class Progress?',icon:'↻',tone:'danger',confirmText:'Reset Class Progress'}))return;state.classProgress={completed:[],collection:{},relics:{},achievements:[],perfectLevels:[],perfectRuns:0,lastLevel:1};state.lastLevel=1;keyboardLevel=1;save();$('settingsOverlay')?.classList.remove('open');renderHome();toast('Whole-class Fluency Pyramid progress was reset.')}
-  function fullscreen(){try{let h=window.webkit?.messageHandlers?.nativeFullscreen||window.top?.webkit?.messageHandlers?.nativeFullscreen;if(h){h.postMessage('toggle');return}}catch{}if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()}
+  function fullscreen(){return window.tfTogglePortableFullscreen?.()}
 
   function normalizeImportHeader(value){return String(value??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[\s_.-]+/g,' ')}
   function firstImportedName(value){return String(value??'').trim()||''}

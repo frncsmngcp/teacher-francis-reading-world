@@ -365,14 +365,12 @@ textarea{width:100%;min-height:170px;border:4px solid #d5b387;border-radius:20px
     max-width:720px!important;
     max-height:none!important;
     overflow:hidden!important;
-    scrollbar-width:none!important;
+    
     padding:clamp(18px,2.4vh,26px) clamp(20px,2.7vw,30px) clamp(18px,2.2vh,24px)!important;
     border-radius:28px!important;
     background:linear-gradient(155deg,#3a2372 0%,#251653 50%,#17113a 100%)!important;
     box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.22),0 0 0 5px rgba(101,72,164,.20)!important;
-  }
-  .tf-dialog-card::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
-  .tf-dialog-card::before,
+  }.tf-dialog-card::before,
   .tf-dialog-card::after,
   .tf-dialog-sparkles{display:none!important}
   .tf-dialog-top{
@@ -474,12 +472,7 @@ html,body,#app,#stage,#viewport{ -webkit-font-smoothing:antialiased; text-render
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
 
-<style id="wq-hide-scrollbars-global">
-/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
-*{scrollbar-width:none!important;-ms-overflow-style:none!important}
-*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
-*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
-</style>
+  <link rel="stylesheet" href="../shared/wq-scrollbars.css">
 </head>
 <body>
 <div id="app">
@@ -1281,20 +1274,7 @@ function closeSettings(){ $('settingsOverlay').classList.remove('open'); }
 function openCustom(){ $('customInput').value=(state.custom||[]).join(', '); $('customOverlay').classList.add('open'); }
 function closeCustom(){ $('customOverlay').classList.remove('open'); }
 async function toggleFull(){
-  try{
-    const h=window.webkit?.messageHandlers?.nativeFullscreen||window.top?.webkit?.messageHandlers?.nativeFullscreen;
-    if(h){h.postMessage('toggle');refreshStageLayout();return;}
-  }catch(e){}
-  try{
-    if(!document.fullscreenElement && !document.webkitFullscreenElement){
-      const target=document.documentElement;
-      if(target.requestFullscreen) await target.requestFullscreen();
-      else if(target.webkitRequestFullscreen) target.webkitRequestFullscreen();
-    }else{
-      if(document.exitFullscreen) await document.exitFullscreen();
-      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-  }catch(e){console.warn('Fullscreen error',e);}
+  try{await window.tfTogglePortableFullscreen?.();}catch(e){console.warn('Fullscreen error',e);}
   refreshStageLayout();
 }
 function lerp(a,b,t){ return a+(b-a)*t; }

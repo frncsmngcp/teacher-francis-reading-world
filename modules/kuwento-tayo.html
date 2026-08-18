@@ -87,9 +87,7 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 /* modals */
 .modal{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(14,45,58,.48);backdrop-filter:blur(5px)}
 .modal.open{display:flex}
-.panel{width:min(82%,900px);max-height:82%;overflow:auto;scrollbar-width:none;-ms-overflow-style:none;background:linear-gradient(#fff7dc,#f7dfb0);border:7px solid #92521c;border-radius:34px;box-shadow:0 20px 60px rgba(0,0,0,.38);padding:3%;color:#4d3018;position:relative}
-.panel::-webkit-scrollbar{display:none;width:0;height:0}
-/* Keep Settings controls inside the modal; no horizontal scrolling */
+.panel{width:min(82%,900px);max-height:82%;overflow:auto;background:linear-gradient(#fff7dc,#f7dfb0);border:7px solid #92521c;border-radius:34px;box-shadow:0 20px 60px rgba(0,0,0,.38);padding:3%;color:#4d3018;position:relative}/* Keep Settings controls inside the modal; no horizontal scrolling */
 #settingsModal .panel{overflow-y:auto;overflow-x:hidden;box-sizing:border-box}
 #settingsModal .setting-row{min-width:0}
 #settingsModal .setting-row>*{min-width:0;max-width:100%;box-sizing:border-box}
@@ -316,12 +314,7 @@ button,.hotspot,.book-card,.choice,.toggle,.reset,.action-btn{touch-action:manip
 button,input,select,textarea,option{color-scheme:light!important}
 </style>
 
-<style id="wq-hide-scrollbars-global">
-/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
-*{scrollbar-width:none!important;-ms-overflow-style:none!important}
-*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
-*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
-</style>
+  <link rel="stylesheet" href="../shared/wq-scrollbars.css">
 </head>
 <body>
 <div id="app"><main class="stage" id="stage">
@@ -526,23 +519,8 @@ $('#resetProgress').onclick=()=>{if(confirm('Reset all Kuwento Tayo reading prog
 $('#doorEn').onclick=()=>openLibrary('en');$('#doorFil').onclick=()=>openLibrary('fil');$('#shelfPrev').onclick=()=>{state.shelfPage--;renderShelf();clickChime()};$('#shelfNext').onclick=()=>{state.shelfPage++;renderShelf();clickChime()};$('#readerBack').onclick=()=>{speechSynthesis.cancel();setScreen('shelf');renderShelf();clickChime()};$('#prevBtn').onclick=prevPage;$('#nextBtn').onclick=nextPage;$('#readAudio').onclick=readCurrent;
 $('#retryQuiz').onclick=()=>{$('#resultModal').classList.remove('open');state.mode='quiz';state.qIndex=0;state.qScore=0;renderReader()};$('#backShelfResult').onclick=()=>{$('#resultModal').classList.remove('open');setScreen('shelf');renderShelf()};
 async function toggleFullscreen(){
- try{
-   if(window.parent&&window.parent!==window){
-     // Same-origin direct call keeps the tap's user activation for the Fullscreen API.
-     try{if(typeof window.parent.toggleSuiteFullscreen==='function'){await window.parent.toggleSuiteFullscreen();return;}}catch(_){ }
-     window.parent.postMessage({type:'teacher-francis-suite-fullscreen'},'*');return;
-   }
- }catch(_){ }
- const el=document.documentElement;
- try{
-   if(document.fullscreenElement||document.webkitFullscreenElement){await (document.exitFullscreen?.()||document.webkitExitFullscreen?.());return;}
-   const fn=el.requestFullscreen||el.webkitRequestFullscreen;if(fn){await fn.call(el);return;}
- }catch(_){ }
- // iPhone Safari does not expose document fullscreen. Keep the control useful by
- // asking the browser to collapse chrome where it permits it and refitting.
- document.documentElement.classList.toggle('kuwento-focus-view');
- try{window.scrollTo({top:1,left:0,behavior:'smooth'})}catch(_){window.scrollTo(0,1)}
- setTimeout(()=>window.tfApplySafeViewport?.(),80);
+ try{await window.tfTogglePortableFullscreen?.();}catch(_){ }
+ setTimeout(()=>window.tfApplySafeViewport?.(),40);
 }
 
 // Voice — independent English and Filipino selectors.

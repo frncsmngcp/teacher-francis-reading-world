@@ -45,96 +45,6 @@
   }
   window.tfUsableViewport = usableViewport;
 
-  function portableFullscreenActive() {
-    try {
-      if (document.fullscreenElement || document.webkitFullscreenElement) return true;
-      if (document.documentElement.classList.contains('tf-pseudo-fullscreen')) return true;
-      if (document.body?.classList.contains('tf-pseudo-fullscreen')) return true;
-      if (window.top && window.top !== window) {
-        try { return !!window.top.tfIsPortableFullscreenActive?.(); } catch (_) {}
-      }
-    } catch (_) {}
-    return false;
-  }
-  window.tfIsPortableFullscreenActive = portableFullscreenActive;
-
-  async function togglePortableFullscreen() {
-    // Native wrapper hook, when the PWA is hosted inside one.
-    try {
-      const h = window.webkit?.messageHandlers?.nativeFullscreen || window.top?.webkit?.messageHandlers?.nativeFullscreen;
-      if (h) { h.postMessage('toggle'); return true; }
-    } catch (_) {}
-
-    // Modules are same-origin iframes inside the WonderQuest suite. Asking the
-    // top document directly keeps the original tap/click user activation, which
-    // is important on mobile/tablet browsers for requestFullscreen().
-    try {
-      if (window.top && window.top !== window && typeof window.top.tfTogglePortableFullscreen === 'function') {
-        return window.top.tfTogglePortableFullscreen();
-      }
-    } catch (_) {}
-
-    const doc = document;
-    const current = doc.fullscreenElement || doc.webkitFullscreenElement;
-    if (current) {
-      try {
-        const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
-        if (exit) {
-          const result = exit.call(doc);
-          if (result?.then) await result;
-        }
-      } catch (_) {}
-      document.documentElement.classList.remove('tf-pseudo-fullscreen');
-      document.body?.classList.remove('tf-pseudo-fullscreen');
-      setTimeout(() => window.tfApplySafeViewport?.(), 40);
-      return false;
-    }
-
-    const target = document.getElementById('suite') || document.getElementById('app') || document.documentElement;
-    const request = target?.requestFullscreen || target?.webkitRequestFullscreen;
-    if (request) {
-      try {
-        // navigationUI is ignored by browsers that do not implement the option.
-        let result;
-        try { result = request.call(target, { navigationUI: 'hide' }); }
-        catch (_) { result = request.call(target); }
-        if (result?.then) await result;
-        document.documentElement.classList.remove('tf-pseudo-fullscreen');
-        document.body?.classList.remove('tf-pseudo-fullscreen');
-        setTimeout(() => window.tfApplySafeViewport?.(), 40);
-        return true;
-      } catch (_) {
-        // Continue to the focus-view fallback below.
-      }
-    }
-
-    // Browser fallback: on environments where element fullscreen is unavailable,
-    // keep the button functional by expanding WonderQuest to every visible CSS
-    // pixel. Installed PWAs already run without normal browser chrome.
-    const enabled = !document.documentElement.classList.contains('tf-pseudo-fullscreen');
-    document.documentElement.classList.toggle('tf-pseudo-fullscreen', enabled);
-    document.body?.classList.toggle('tf-pseudo-fullscreen', enabled);
-    try { window.scrollTo({ top: 1, left: 0, behavior: 'smooth' }); } catch (_) { try { window.scrollTo(0,1); } catch (_) {} }
-    setTimeout(() => window.tfApplySafeViewport?.(), 40);
-    setTimeout(() => window.tfApplySafeViewport?.(), 180);
-    return enabled;
-  }
-  window.tfTogglePortableFullscreen = togglePortableFullscreen;
-
-  const fullscreenStyle = document.createElement('style');
-  fullscreenStyle.id = 'tf-portable-fullscreen-style';
-  fullscreenStyle.textContent = `
-    html.tf-pseudo-fullscreen,html.tf-pseudo-fullscreen body,
-    body.tf-pseudo-fullscreen{width:100%!important;height:100%!important;margin:0!important;overflow:hidden!important;}
-    html.tf-pseudo-fullscreen #app,html.tf-pseudo-fullscreen #viewport,
-    body.tf-pseudo-fullscreen #app,body.tf-pseudo-fullscreen #viewport{
-      position:fixed!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;
-      width:var(--tf-usable-width,100dvw)!important;height:var(--tf-usable-height,100dvh)!important;
-      max-width:none!important;max-height:none!important;margin:0!important;
-    }
-  `;
-  document.head ? document.head.appendChild(fullscreenStyle) : document.documentElement.appendChild(fullscreenStyle);
-
   let viewportRaf = 0;
   function applySafeViewport() {
     cancelAnimationFrame(viewportRaf);
@@ -194,7 +104,7 @@
       // size their stage directly so the whole interface is always visible.
       const stage = document.getElementById('stage');
       if (stage && (moduleName === 'basa-tayo' || moduleName === 'kuwento-tayo')) {
-        const ratio = 16/9;
+        const ratio = moduleName === 'basa-tayo' ? 3/2 : 16/9;
         const margin = 8;
         const usableW = Math.max(1, vp.width - margin*2);
         const usableH = Math.max(1, vp.height - margin*2);

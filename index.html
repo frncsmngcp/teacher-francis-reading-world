@@ -895,8 +895,8 @@ button,input,select,textarea,option{color-scheme:light!important}
     padding:0 1.3% 2% 0;
     overflow-y:auto;
     overscroll-behavior:contain;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
+    
+    
     color:#4a2a13;
     font-family:Georgia,"Times New Roman",serif;
     font-size:clamp(10px,1.18vw,18px);
@@ -909,9 +909,7 @@ button,input,select,textarea,option{color-scheme:light!important}
     touch-action:pan-y pinch-zoom;
     scroll-behavior:smooth;
     pointer-events:auto;
-  }
-  #about-developer-copy::-webkit-scrollbar{width:0;height:0;display:none}
-  #about-developer-copy p{margin:0 0 1.05em}
+  }#about-developer-copy p{margin:0 0 1.05em}
   #about-developer-copy strong{font-weight:800;color:#34190b}
   #about-developer-copy .about-signature{
     margin-top:1.35em;
@@ -979,17 +977,12 @@ button,input,select,textarea,option{color-scheme:light!important}
 </style>
 
 
-<style id="wq-hide-scrollbars-global">
-/* Keep every scrollable area fully scrollable while hiding native scrollbar chrome. */
-*{scrollbar-width:none!important;-ms-overflow-style:none!important}
-*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
-*::-webkit-scrollbar-track,*::-webkit-scrollbar-thumb,*::-webkit-scrollbar-corner{background:transparent!important;border:0!important}
-</style>
+  <link rel="stylesheet" href="./shared/wq-scrollbars.css">
 </head>
 <body>
   <main id="suite" aria-label="WonderQuest: Reading World">
     <section id="home-screen" class="screen active" aria-label="Choose one of six reading apps">
-      <img id="home-art" alt="WonderQuest: Reading World with six reading app choices" src="./assets/37bc59310acbd4178b33.png" fetchpriority="high" decoding="async">
+      <img id="home-art" alt="WonderQuest: Reading World home screen" src="./assets/wq-compilation-home-by-teacher-francis-v3.png" fetchpriority="high" decoding="async">
       <div id="home-vfx" aria-hidden="true"></div>
       <nav id="home-controls" aria-label="Reading apps">
         <button class="launch-hotspot" data-app="awad" aria-label="Open AWAD — A Word A Day" title="AWAD — keyboard 1"></button>
@@ -1101,7 +1094,7 @@ button,input,select,textarea,option{color-scheme:light!important}
 
     function syncFullscreenLabel() {
       if (!fullscreenButton) return;
-      const active = Boolean(document.fullscreenElement || window.__tfNativeFullscreenActive);
+      const active = Boolean(window.tfIsPortableFullscreenActive?.() || document.fullscreenElement || window.__tfNativeFullscreenActive);
       const label = active ? "Exit Fullscreen" : "Fullscreen";
       fullscreenButton.setAttribute("aria-label", active ? "Exit fullscreen mode" : "Open Basa Tayo in fullscreen mode");
       const textNode = fullscreenButton.querySelector("span:last-child");
@@ -1202,39 +1195,17 @@ button,input,select,textarea,option{color-scheme:light!important}
     if (fullscreenButton) {
       fullscreenButton.addEventListener("click", async () => {
         if (currentApp !== "basa-tayo") return;
-        try {
-          const h=window.webkit?.messageHandlers?.nativeFullscreen;
-          if(h){h.postMessage('toggle');return;}
-        } catch {}
-        try {
-          if (document.fullscreenElement) await document.exitFullscreen?.();
-          else await suite.requestFullscreen?.();
-        } catch {}
+        try { await window.tfTogglePortableFullscreen?.(); } catch (_) {}
         syncFullscreenLabel();
       });
       document.addEventListener("fullscreenchange", syncFullscreenLabel);
+      document.addEventListener("webkitfullscreenchange", syncFullscreenLabel);
       syncFullscreenLabel();
     }
     async function toggleSuiteFullscreen(){
-      try{
-        const h=window.webkit?.messageHandlers?.nativeFullscreen;
-        if(h){h.postMessage('toggle');return;}
-      }catch(_){ }
-      try{
-        if(document.fullscreenElement||document.webkitFullscreenElement){
-          await (document.exitFullscreen?.()||document.webkitExitFullscreen?.());
-          document.body.classList.remove('tf-pseudo-fullscreen');
-          return;
-        }
-        const fn=suite.requestFullscreen||suite.webkitRequestFullscreen;
-        if(fn){await fn.call(suite);return;}
-      }catch(_){ }
-      // iPhone Safari: no document fullscreen API. Expand the app to every
-      // available CSS pixel and let the child module refit to the visible area.
-      document.body.classList.toggle('tf-pseudo-fullscreen');
-      try{scrollTo({top:1,left:0,behavior:'smooth'})}catch(_){scrollTo(0,1)}
-      setTimeout(()=>window.tfApplySafeViewport?.(),80);
+      try{return await window.tfTogglePortableFullscreen?.();}catch(_){return false;}
     }
+    window.toggleSuiteFullscreen = toggleSuiteFullscreen;
     window.addEventListener("message", event => {
       if (event.data?.type === "teacher-francis-suite-home") showHome();
       if (event.data?.type === "teacher-francis-suite-fullscreen") toggleSuiteFullscreen();
