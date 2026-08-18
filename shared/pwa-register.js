@@ -8,6 +8,10 @@
   let updatePromptDismissed = false;
   let reloadForUpdate = false;
 
+  function preloadGateOwnsCaching() {
+    return !!window.__WQ_PRELOAD_GATE__?.managesCaching;
+  }
+
   function startFullLibraryWarmup() {
     if (!cacheTarget || !navigator.onLine) return;
     cacheTarget.postMessage({ type: 'PRECACHE_READING_WORLD' });
@@ -112,7 +116,7 @@
       await navigator.serviceWorker.ready;
 
       cacheTarget = navigator.serviceWorker.controller || registration.active || registration.waiting;
-      scheduleFullLibraryWarmup();
+      if (!preloadGateOwnsCaching()) scheduleFullLibraryWarmup();
 
       if (registration.waiting && navigator.serviceWorker.controller) showUpdatePrompt(registration);
       if (registration.installing) watchInstallingWorker(registration, registration.installing);
@@ -139,7 +143,7 @@
       try { await navigator.storage?.persist?.(); } catch (_) {}
 
       window.addEventListener('online', () => {
-        setTimeout(startFullLibraryWarmup, 800);
+        if (!preloadGateOwnsCaching()) setTimeout(startFullLibraryWarmup, 800);
         setTimeout(checkForAppUpdate, 1000);
       });
 
@@ -150,7 +154,7 @@
           location.reload();
           return;
         }
-        setTimeout(startFullLibraryWarmup, 500);
+        if (!preloadGateOwnsCaching()) setTimeout(startFullLibraryWarmup, 500);
       });
     } catch (err) {
       console.warn('WonderQuest cache was not registered:', err);
