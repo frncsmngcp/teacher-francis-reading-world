@@ -358,8 +358,8 @@ button,input,select,textarea,option{color-scheme:light!important}
 
   <link rel="stylesheet" href="../shared/wq-scrollbars.css">
 
-<style id="wq-basa-picture-blend-v45">
-/* WonderQuest v45 — larger, squarer universal Basa Tayo visual sizing.
+<style id="wq-basa-picture-blend-v46">
+/* WonderQuest v46 — portrait-safe, true-square Basa Tayo visual sizing.
    Letters, Pantig, and Pangungusap pictures all render through one identical square viewport. */
 .lesson-picture{
   background:none!important;
@@ -381,11 +381,11 @@ button,input,select,textarea,option{color-scheme:light!important}
   left:50%;
   top:50%;
   transform:translate(-50%,-50%);
-  width:min(96%, calc(41cqw - .1cqw));
-  height:auto;
+  width:25cqw;
+  height:25cqw;
   aspect-ratio:1 / 1;
-  max-width:96%;
-  max-height:96%;
+  max-width:98%;
+  max-height:98%;
   overflow:hidden;
   background:transparent;
   border:0;
@@ -406,7 +406,7 @@ button,input,select,textarea,option{color-scheme:light!important}
 }
 .lesson-picture .lesson-sprite-image{
   background-position:center center;
-  background-size:500% 300%;
+  background-size:800% 300%;
 }
 .lesson-picture .lesson-exact-image{
   object-fit:cover!important;
@@ -1584,8 +1584,8 @@ ${u}`);throw u instanceof Error&&u.stack&&(f.stack=u.stack),f}}};J0.defaultOptio
     let frame=makeFrame();frame.classList.add("card-frame");
     let a=document.createElement("span");a.className="picture-card-text",a.textContent=card,frame.appendChild(a),r.appendChild(frame);
   }else{
-    let i=p%5,n=Math.floor(p/5),frame=makeFrame(),visual=document.createElement("div");
-    visual.className="lesson-sprite-image",visual.style.backgroundImage=`url("${El[t]}")`,visual.style.backgroundPosition=`${i*25}% ${n*50}%`,visual.style.backgroundSize="500% 300%",visual.style.backgroundRepeat="no-repeat",frame.appendChild(visual),r.appendChild(frame);
+    let i=p%5,n=Math.floor(p/5),frame=makeFrame(),visual=document.createElement("div"),spriteX=[4.2857,27.1429,50,72.8571,95.7143][i];
+    visual.className="lesson-sprite-image",visual.style.backgroundImage=`url("${El[t]}")`,visual.style.backgroundPosition=`${spriteX}% ${n*50}%`,visual.style.backgroundSize="800% 300%",visual.style.backgroundRepeat="no-repeat",frame.appendChild(visual),r.appendChild(frame);
   }
 
   r.dataset.pictureKey=`${s.kind}:${s.letter}:${s.pos}:${e}`,
